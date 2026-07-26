@@ -138,7 +138,7 @@ def test_dead_session_degrades_to_anonymous(tmp_path, monkeypatch):
     assert auth.bearer_token() is None
 
 
-# ── headless detection (plan risk 9.2) ───────────────────────────────────────
+# ── headless detection ───────────────────────────────────────────────────────
 
 
 def test_ssh_session_is_headless():
@@ -174,7 +174,7 @@ def test_headless_help_leads_with_the_credentials_file_then_the_env_var():
     assert help_text.index("credentials.json") < help_text.index("STYLEREF_TOKEN")
 
 
-# ── OAuth callback page (plan P0-4) ──────────────────────────────────────────
+# ── OAuth callback page ──────────────────────────────────────────────────────
 
 
 class _FakeWFile:

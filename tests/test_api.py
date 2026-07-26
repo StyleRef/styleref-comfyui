@@ -160,7 +160,7 @@ def test_401_flags_needs_login(monkeypatch):
 
 def test_401_with_env_token_hints_at_expiry(monkeypatch):
     """
-    Plan P0-5: the env token never refreshes itself, so a headless install's
+    The env token never refreshes itself, so a headless install's
     401 hours later needs to say the likely cause — an expired STYLEREF_TOKEN.
     """
     monkeypatch.setenv("STYLEREF_TOKEN", "stale-token")
@@ -213,7 +213,7 @@ def test_get_style_spec_reads_the_canonical_url_header(monkeypatch):
     assert url == "https://styleref.io/share/real-slug"
 
 
-# ── extraction stays out of this client (plan P0-6 / decision D1) ────────────
+# ── extraction stays out of this client ──────────────────────────────────────
 
 
 def test_client_has_no_extraction_endpoints():
@@ -306,7 +306,7 @@ def test_client_tag_header_is_sent(monkeypatch):
     assert captured.get("X-styleref-client") == "comfyui"
 
 
-# ── save (P5-6) ──────────────────────────────────────────────────────────────
+# ── save ─────────────────────────────────────────────────────────────────────
 
 
 def test_save_style_posts_to_the_save_endpoint(monkeypatch):
@@ -322,7 +322,7 @@ def test_save_style_posts_to_the_save_endpoint(monkeypatch):
     assert seen["url"].endswith("/styles/%40ada%2FWarm%20Editorial/save")
 
 
-# ── conditional GET (P5-8) ───────────────────────────────────────────────────
+# ── conditional GET ──────────────────────────────────────────────────────────
 
 
 def test_304_is_success_not_error(monkeypatch):

@@ -7,12 +7,12 @@ link ids, and slot indices across all of them — the kind of bookkeeping that i
 silently wrong until someone drags the file onto a canvas. This builds them from
 a description instead, so the ids are correct by construction.
 
-Layout policy (plan P2-1): node positions are never guessed. Every node's height
+Layout policy: node positions are never guessed. Every node's height
 is estimated from its widget count, and nodes stack per column with a fixed
 vertical gap — so no template can ship with overlapping nodes at default sizes.
 A test asserts that invariant on the committed files.
 
-Instruction policy (plan P2-2): user-facing instructions live in visible core
+Instruction policy: user-facing instructions live in visible core
 `Note` nodes on the canvas. `extra.styleref.notes` carries only a one-line
 provenance string — ComfyUI never renders it, so it must not carry anything a
 user needs to read.
@@ -35,7 +35,7 @@ _PACK_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PACK_ROOT not in sys.path:
     sys.path.insert(0, _PACK_ROOT)
 
-# Single-sourced from the node itself (D4: the Facets output list is data-driven
+# Single-sourced from the node itself (the Facets output list is data-driven
 # and long — duplicating it here would guarantee drift).
 from styleref_nodes.facets import StyleRefFacets  # noqa: E402
 
@@ -89,7 +89,7 @@ INPUTS = {
     "PreviewAny": [("source", "*")],
 }
 
-# ── layout constants (plan P2-1) ─────────────────────────────────────────────
+# ── layout constants ─────────────────────────────────────────────────────────
 
 NODE_WIDTH = 320
 HEADER_H = 60          # title bar
@@ -106,10 +106,10 @@ MULTILINE_WIDGETS = {
     "Note": {0},
 }
 
-# Node titles longer than this truncate in both frontends (plan P2-2).
+# Node titles longer than this truncate in both frontends.
 MAX_TITLE = 28
 
-# Frontend model-download metadata (plan P2-7): a missing checkpoint becomes a
+# Frontend model-download metadata: a missing checkpoint becomes a
 # guided download instead of a red error.
 # Placeholder ref for the "your own style" templates. Refs are opaque ids now
 # (no name lookup), so the templates ship an obvious placeholder the user swaps
@@ -159,7 +159,7 @@ MODELS_ZIMAGE = [MODEL_ZIMAGE_UNET, MODEL_ZIMAGE_CLIP, MODEL_ZIMAGE_VAE]
 
 def node_height(node_type: str, widgets: list[Any]) -> int:
     """
-    Estimated on-canvas height (plan P2-1): header + one row per input/output
+    Estimated on-canvas height: header + one row per input/output
     slot + one row per widget. The slot term matters for wide-output nodes —
     Facets alone has dozens of outputs.
     """
@@ -231,7 +231,7 @@ class Graph:
         return self._node_id
 
     def note(self, col: int, text: str, title: str = "Read me") -> int:
-        """A visible core Note node — the instruction channel (plan P2-2)."""
+        """A visible core Note node — the instruction channel."""
         # Height scales with the text so long notes don't clip at default size.
         h = HEADER_H + 30 + 18 * (text.count("\n") + len(text) // 55)
         return self.place("Note", col, [text], title=title, height=h)
@@ -280,7 +280,7 @@ def apply_widgets(subject: str, target: str) -> list[Any]:
 
 
 def sampler_widgets(cfg: float) -> list[Any]:
-    # Seeds randomize (plan P2-4): a fixed seed makes the second queue a silent
+    # Seeds randomize: a fixed seed makes the second queue a silent
     # cache no-op — deadly in a demo.
     return [0, "randomize", 25, cfg, "euler", "normal", 1.0]
 
@@ -332,10 +332,9 @@ def _facet_board(graph: Graph, load: int, col: int) -> int:
 
 def _preview(graph: Graph, apply_node: int, col: int, suffix: str = "") -> None:
     """
-    Compiled prompts made visible (plan P2-3, extended to every template by
-    owner decision): Preview Any on Apply's positive and negative kills the
-    "empty text box on the encoder looks broken" perception and teaches what
-    StyleRef actually produces.
+    Compiled prompts made visible, in every template: Preview Any on Apply's
+    positive and negative kills the "empty text box on the encoder looks
+    broken" perception and teaches what StyleRef actually produces.
     """
     pos = graph.place("PreviewAny", col, [], title=f"Compiled positive{suffix}")
     neg = graph.place("PreviewAny", col, [], title=f"Compiled negative{suffix}")
@@ -442,7 +441,7 @@ def workflow_zimage_01_quickstart() -> dict[str, Any]:
 
 
 def workflow_zimage_02_consistency() -> dict[str, Any]:
-    """One style across three subjects on Z-Image (plan P2-5)."""
+    """One style across three subjects on Z-Image."""
     g = Graph()
     g.note(
         0,
@@ -567,7 +566,7 @@ def workflow_01_quickstart() -> dict[str, Any]:
 
 def workflow_02_consistency() -> dict[str, Any]:
     """
-    One style across three subjects, side by side (plan P2-5).
+    One style across three subjects, side by side.
 
     Consistency is the claim this demonstrates, and it is scoped precisely: the
     same style applied within this one model produces a coherent set. It is not
@@ -603,7 +602,7 @@ def workflow_02_consistency() -> dict[str, Any]:
 
 
 def workflow_03_your_own_style() -> dict[str, Any]:
-    """Your own style, made on the web, loaded here (plan P0-6's template 03)."""
+    """Your own style, made on the web, loaded here (template 03)."""
     g = Graph()
     g.note(
         0,

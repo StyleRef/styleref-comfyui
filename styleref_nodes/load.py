@@ -1,14 +1,14 @@
 """
 StyleRef Load — fetch a style into the graph.
 
-Widget policy (plan risk 9.1): every widget here is vanilla — a text field, a
+Widget policy: every widget here is vanilla — a text field, a
 combo, a toggle. The live search dialog is a *progressive enhancement* shipped
 in web/styleref.js. When that JS fails to load, or a ComfyUI frontend release
 breaks it, this node still works exactly as written: type or paste a ref. The
 search path is additionally available headlessly via the `search` widget, whose
 results land on the `search_results` output and in the node body.
 
-Guidance policy (plan P1-2): Nodes 2.0 does not render STRING placeholders, so
+Guidance policy: Nodes 2.0 does not render STRING placeholders, so
 every input's contract must survive on tooltip + default alone. Placeholders are
 kept (harmless where supported) but never as the only channel.
 
@@ -64,7 +64,7 @@ SEARCH_CATEGORIES = [
 # ComfyUI re-runs a node whenever anything upstream changes, and re-fetching an
 # unchanged style on every queue would burn the anonymous rate limit for no
 # benefit. When the node does re-execute, a stored ETag turns the re-fetch into
-# a cheap conditional GET (P5-8): the server answers 304 and the cached style —
+# a cheap conditional GET: the server answers 304 and the cached style —
 # including its compiled-prompt cache — is kept.
 _CACHE: dict[str, dict[str, Any]] = {}
 
@@ -110,7 +110,7 @@ def fetch_style(ref: str, use_cache: bool = True) -> dict[str, Any]:
 
     # With use_cache off (or after a refresh) we still send the stored ETag:
     # "re-download every run" becomes "revalidate every run" — a bodyless 304
-    # when nothing changed, the full spec when it did (P5-8).
+    # when nothing changed, the full spec when it did.
     etag = cached.get("etag") if cached else None
     spec, canonical_url, new_etag = api.get_style_spec(ref, etag=etag)
     if spec is None and cached is not None:
@@ -265,8 +265,7 @@ class StyleRefLoad:
 
         summary = f"Loaded {summary_line(style)}"
         # The search card carries no palette data, so the node body is where the
-        # palette shows up (plan P3-2's fallback) — as text, the only channel
-        # ui.text has.
+        # palette shows up — as text, the only channel ui.text has.
         hexes = palette_hexes(style)[:5]
         if hexes:
             summary += f"\nPalette: {' '.join(hexes)}"
@@ -274,7 +273,7 @@ class StyleRefLoad:
         if save_to_library:
             summary += f"\n{self._save_to_library(style)}"
         elif style.get("url"):
-            # Passive contribution nudge (plan P6-3): the style's public page is
+            # Passive contribution nudge: the style's public page is
             # where renders made with it can be shared.
             summary += f"\nMade something good with it? Share it on {style['url']}"
 
@@ -302,7 +301,7 @@ class StyleRefLoad:
 
     @staticmethod
     def _result(style: dict[str, Any], results: str, body: str):
-        # ui.text renders in the node body (P0-2): the load confirmation and any
+        # ui.text renders in the node body: the load confirmation and any
         # search results are visible without wiring the STRING output anywhere.
         return {"ui": {"text": [body]}, "result": (style, results)}
 

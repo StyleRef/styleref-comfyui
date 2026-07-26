@@ -128,7 +128,7 @@ def test_negatives_are_normalized_comma_terms(style):
 
 def test_negatives_cover_artifacts_and_avoided_colors():
     """
-    Plan P1-9: guardrails carry more than avoided_visuals — artifacts to avoid
+    Guardrails carry more than avoided_visuals — artifacts to avoid
     and avoided colors are user-authored constraints and belong in the negative.
     """
     style = make_style(
@@ -241,7 +241,7 @@ def test_is_style_rejects_arbitrary_dicts():
     assert is_style(make_style(ref="x", name="ok")) is True
 
 
-# ── dimensions (P5-2: width/height from the style) ───────────────────────────
+# ── dimensions (width/height from the style) ─────────────────────────────────
 
 
 def _fmt_style(aspect: str | None = None, resolution: str | None = None):

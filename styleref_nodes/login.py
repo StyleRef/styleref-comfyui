@@ -14,7 +14,7 @@ without a frontend goes through `npx styleref login` (the CLI shares this
 pack's credentials file) or STYLEREF_TOKEN; sign-out without a frontend is
 deleting the credentials file, which the status text names.
 
-Remote installs (plan risk 9.2): the loopback flow cannot work when ComfyUI
+Remote installs: the loopback flow cannot work when ComfyUI
 runs on a rented GPU box — there is no browser to open and `localhost` is the
 wrong machine. The sign-in path detects that case up front and returns the
 STYLEREF_TOKEN instructions instead of hanging on a callback that will never

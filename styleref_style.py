@@ -32,10 +32,10 @@ from typing import Any
 PALETTE = ("colors", "color_palette")
 MOOD = ("mood_personality", "mood_personality")
 
-# Every guardrail field that belongs in an image model's NEGATIVE channel
-# (plan P1-9 + the 2026-07-23 negation pass), in render order. avoided_words is
-# deliberately absent: it constrains text output (buzzwords, brand voice) and
-# stays in the text formats — the same split as voice_language.
+# Every guardrail field that belongs in an image model's NEGATIVE channel, in
+# render order. avoided_words is deliberately absent: it constrains text output
+# (buzzwords, brand voice) and stays in the text formats — the same split as
+# voice_language.
 GUARDRAIL_ARTIFACTS = ("guardrails", "common_artifacts_to_avoid")
 GUARDRAILS = ("guardrails", "avoided_visuals")
 GUARDRAIL_COLORS = ("guardrails", "avoided_colors")

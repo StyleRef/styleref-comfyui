@@ -418,6 +418,6 @@ def list_saved_styles(
 
 
 # Note: this client deliberately has no extraction endpoints. Extraction is a
-# web-app experience (preview, per-block editing, history, free re-apply) —
-# plugin decision D1. The REST /extractions tier itself remains available for
-# CLI and agent surfaces.
+# web-app experience (preview, per-block editing, history, free re-apply), so
+# the pack loads styles rather than making them. The REST /extractions tier
+# itself remains available for CLI and agent surfaces.

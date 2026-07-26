@@ -4,8 +4,8 @@ Workflow template tests.
 A broken template is only discovered when a user drags it onto a canvas and it
 fails silently, so the structural invariants are checked here instead: every
 link points at a node that exists, at a slot that exists, carrying a type both
-ends agree on — and the layout invariants of plan P2-1/P2-2: no overlapping
-nodes, instructions in visible Note nodes, titles short enough to render.
+ends agree on — plus the layout invariants: no overlapping nodes, instructions
+in visible Note nodes, titles short enough to render.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ def _load(path: str) -> dict:
 
 
 def _note_text(graph: dict) -> str:
-    """All visible Note-node text — the instruction channel (plan P2-2)."""
+    """All visible Note-node text — the instruction channel."""
     return "\n".join(
         str(n["widgets_values"][0])
         for n in graph["nodes"]
@@ -50,7 +50,7 @@ def test_every_declared_workflow_is_committed():
 
 
 def test_extraction_template_is_gone():
-    """Plan P0-6: extraction lives on the web; template 03 tells that story."""
+    """Extraction lives on the web; template 03 tells that story."""
     assert "03-extract-and-reuse.json" not in {os.path.basename(p) for p in FILES}
     assert "03-your-own-style.json" in {os.path.basename(p) for p in FILES}
 
@@ -78,7 +78,7 @@ def test_committed_file_matches_the_generator(path):
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
 def test_only_the_shipped_styleref_nodes_appear(path):
-    """Plan P0-6: a template referencing a removed node fails on the canvas."""
+    """A template referencing a removed node fails on the canvas."""
     allowed = {
         "StyleRefLoad",
         "StyleRefApply",
@@ -128,7 +128,7 @@ def test_link_ids_are_unique_and_registered_on_both_ends(path):
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
 def test_no_nodes_overlap_at_default_sizes(path):
-    """Plan P2-1: overlapping nodes read as a broken template — layout is math,
+    """Overlapping nodes read as a broken template — layout is math,
     not guesses, so this must hold for every template."""
     nodes = _load(path)["nodes"]
     boxes = [(n["id"], *n["pos"], *n["size"]) for n in nodes]
@@ -142,7 +142,7 @@ def test_no_nodes_overlap_at_default_sizes(path):
 def test_every_workflow_explains_itself_in_a_visible_note(path):
     """
     Templates are documentation — and ComfyUI never renders extra.styleref, so
-    the instructions must live in a visible core Note node (plan P2-2).
+    the instructions must live in a visible core Note node.
     """
     graph = _load(path)
     assert len(_note_text(graph)) > 60, "no substantial Note node found"
@@ -168,14 +168,14 @@ def test_auth_requirements_are_stated(path):
     needs_auth = any(n["type"] == "StyleRefLogin" for n in graph["nodes"])
     if needs_auth:
         assert "sign-in" in notes or "sign in" in notes
-        # The sign-in path ships in the template (plan P2-6), not just in prose.
+        # The sign-in path ships in the template, not just in prose.
         assert any(n["type"] == "StyleRefLogin" for n in graph["nodes"])
 
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
 def test_seeds_randomize(path):
     """
-    Plan P2-4: a fixed seed makes the second queue a silent cache no-op —
+    A fixed seed makes the second queue a silent cache no-op —
     deadly in a demo.
     """
     for node in _load(path)["nodes"]:
@@ -190,7 +190,7 @@ _MODEL_DIRECTORIES = {"checkpoints", "diffusion_models", "text_encoders", "vae"}
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
 def test_model_loaders_carry_download_metadata(path):
-    """Plan P2-7: a missing model should be a guided download, not a red error —
+    """A missing model should be a guided download, not a red error —
     for every loader type (checkpoints and the Z-Image UNET/CLIP/VAE stack)."""
     graph = _load(path)
     loader_files = {
@@ -288,7 +288,7 @@ def test_zimage_templates_have_no_negative_encoder(name):
 
 
 def test_consistency_template_shows_one_style_many_subjects():
-    """Plan P2-5: three Apply nodes with three different subjects, one Load."""
+    """Three Apply nodes with three different subjects, one Load."""
     graph = _load(os.path.join(WORKFLOW_DIR, "02-consistency-grid.json"))
     applies = [n for n in graph["nodes"] if n["type"] == "StyleRefApply"]
     loads = [n for n in graph["nodes"] if n["type"] == "StyleRefLoad"]
@@ -299,7 +299,7 @@ def test_consistency_template_shows_one_style_many_subjects():
 
 
 def test_prompt_previews_exist_where_promised():
-    """Plan P2-3: templates 01 and 04 make the compiled prompts visible."""
+    """Templates 01 and 04 make the compiled prompts visible."""
     for name in ("01-quickstart.json", "04-facets.json"):
         graph = _load(os.path.join(WORKFLOW_DIR, name))
         assert any(n["type"] == "PreviewAny" for n in graph["nodes"]), name

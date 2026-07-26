@@ -22,7 +22,7 @@ CATEGORY = "StyleRef"
 # Node-facing target → the server's `format` parameter.
 #
 # The list is EXACTLY the web app's copy-box format list (owner decision
-# 2026-07-22, superseding D2's midjourney removal), in the same order:
+# 2026-07-22, superseding the earlier midjourney removal), in the same order:
 # AI Tools, STYLE.md, Flux, Midjourney, Diffusion, JSON. The style means the
 # same thing here as on styleref.io, format for format.
 #
@@ -158,7 +158,7 @@ def estimate_tokens(text: str) -> int:
 
 
 def preview_text(positive: str, target: str, compact: bool) -> str:
-    """The node-body summary (P0-2/P1-8): prompt preview + token estimate."""
+    """The node-body summary: prompt preview + token estimate."""
     shown = positive if len(positive) <= PREVIEW_CHARS else positive[:PREVIEW_CHARS] + "…"
     tokens = estimate_tokens(positive)
     line = f"≈{tokens} tokens ({target})"
@@ -279,7 +279,7 @@ class StyleRefApply:
             positive = compose_prompt(subject, style_text, subject_first)
         negative = compose_negative(style, extra_negative)
 
-        # ui.text (P0-2): show what was actually composed, in the node body —
+        # ui.text: show what was actually composed, in the node body —
         # otherwise the first visible evidence of the prompt is the final image.
         return {
             "ui": {"text": [preview_text(positive, target, compact)]},

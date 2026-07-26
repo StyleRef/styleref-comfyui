@@ -53,7 +53,7 @@ const CATEGORIES = [
 // ‹ Prev / Next ›, so the dialog stays a fixed height instead of growing.
 const PAGE_SIZE = 8;
 
-// Resolved by the availability probe (plan P3-7). `null` = probe still running.
+// Resolved by the availability probe. `null` = probe still running.
 let routesAvailable = null;
 
 async function probeRoutes() {
@@ -101,7 +101,7 @@ function el(tag, css, text) {
 }
 
 /**
- * The picker dialog (plan P3-3/P3-5): owns its query, filters, and result
+ * The picker dialog: owns its query, filters, and result
  * list. Resolves with the chosen slug/ref, or null when dismissed.
  */
 function openPicker(initialQuery) {
@@ -124,7 +124,7 @@ function openPicker(initialQuery) {
             resolve(value);
         };
         const onKey = (e) => {
-            // Esc-to-close (plan P3-5), capturing so the canvas never sees it.
+            // Esc-to-close, capturing so the canvas never sees it.
             if (e.key === "Escape") {
                 e.stopPropagation();
                 close(null);
@@ -213,7 +213,7 @@ function openPicker(initialQuery) {
             button.onmouseenter = () => (button.style.background = "#32323a");
             button.onmouseleave = () => (button.style.background = "#26262a");
 
-            // Thumbnail (plan P3-1) — a fixed box so rows align with or without one.
+            // Thumbnail — a fixed box so rows align with or without one.
             const thumb = el(
                 "div",
                 "width:44px;height:44px;border-radius:6px;background:#1a1a1d;flex:none;overflow:hidden;",
@@ -410,7 +410,7 @@ function openPicker(initialQuery) {
                     return;
                 }
                 if (gallery.error) {
-                    // Inline message row, never alert() (plan P3-5).
+                    // Inline message row, never alert().
                     out.append(message(gallery.error));
                     return;
                 }
@@ -593,7 +593,7 @@ async function refreshLoginStatus(node, statusWidget) {
     }
 }
 
-/** True when Apply's `positive` output feeds a CLIPTextEncode (plan P1-3). */
+/** True when Apply's `positive` output feeds a CLIPTextEncode. */
 function positiveFeedsClipEncode(node) {
     const graph = node.graph;
     const output = node.outputs?.find((o) => o.name === "positive");
@@ -619,7 +619,7 @@ app.registerExtension({
                 const result = onCreated?.apply(this, arguments);
 
                 // Only add the search button when the backend routes exist
-                // (plan P3-7) — otherwise it could only 404.
+                // — otherwise it could only 404.
                 if (routesAvailable !== false) {
                     this.addWidget("button", "Search styles…", null, async () => {
                         const refWidget = this.widgets?.find((w) => w.name === "style_ref");
@@ -635,7 +635,7 @@ app.registerExtension({
                     });
                 }
 
-                // Refresh affordance (plan P1-6): the backend drops its cached
+                // Refresh affordance: the backend drops its cached
                 // copy and dirties the node, so the next queue re-downloads —
                 // no need to toggle use_cache off and back on.
                 if (routesAvailable !== false) {
@@ -662,7 +662,7 @@ app.registerExtension({
         }
 
         if (nodeData?.name === APPLY_NODE) {
-            // Warning badge (plan P1-3): `natural`/`style_md` are copy-out
+            // Warning badge: `natural`/`style_md` are copy-out
             // documents; wiring one into a CLIP encoder is almost certainly a
             // mistake. Additive drawing only — nothing else is touched.
             const onDrawForeground = nodeType.prototype.onDrawForeground;

@@ -36,12 +36,12 @@ def clear_cache():
     load_node._GENERATION.clear()
 
 
-# ── pack registration (plan P0-6) ────────────────────────────────────────────
+# ── pack registration ────────────────────────────────────────────────────────
 
 
 def test_pack_registers_exactly_the_five_nodes():
     """
-    Extraction moved to the web app (decision D1): the pack registers
+    Extraction moved to the web app: the pack registers
     Load/Apply/Facets/ReferenceImages/Login and nothing else — an Extract node
     here means the removal regressed.
     """
@@ -65,7 +65,7 @@ def test_pack_registers_exactly_the_five_nodes():
 
 def test_targets_are_exactly_the_web_apps_copy_list_in_order():
     """
-    Owner decision 2026-07-22 (supersedes D2): the target list mirrors the web
+    Owner decision 2026-07-22: the target list mirrors the web
     app's copy-box format list exactly — same entries, same order — so the
     style means the same thing here as on styleref.io. Source of truth:
     PROMPT_FORMAT_OPTIONS in src/components/ui/PromptFormatDropdown.tsx.
@@ -246,7 +246,7 @@ def test_apply_rejects_an_unloaded_style():
         node.apply(make_style(ref="", name="(none)"), "subject", "flux")
 
 
-# ── Apply: node-body feedback (plan P0-2 / P1-8) ─────────────────────────────
+# ── Apply: node-body feedback ────────────────────────────────────────────────
 
 
 def test_apply_returns_ui_text_and_unchanged_result_tuple(monkeypatch):
@@ -370,7 +370,7 @@ def test_private_refs_are_tagged_as_library(monkeypatch):
 
 def test_ungenerated_style_error_reaches_the_user_verbatim(monkeypatch):
     """
-    Plan P0-7: when the server refuses a never-generated own-style ref (409),
+    When the server refuses a never-generated own-style ref (409),
     its message — which tells the user to Generate on styleref.io — must pass
     through unreworded.
     """
@@ -390,7 +390,7 @@ def test_ungenerated_style_error_reaches_the_user_verbatim(monkeypatch):
 
 
 def test_load_returns_ui_text_and_result_tuple(monkeypatch):
-    """P0-2: the load confirmation renders in the node body."""
+    """The load confirmation renders in the node body."""
     monkeypatch.setattr(
         api, "get_style_spec", lambda ref, etag=None: ({"name": "Warm", "sections": {}}, None, None)
     )
@@ -422,7 +422,7 @@ def test_load_never_fetches_style_text(monkeypatch):
 
 
 def test_load_is_an_output_node():
-    """A search-only Load must be queueable alone and still display (P0-2)."""
+    """A search-only Load must be queueable alone and still display."""
     assert load_node.StyleRefLoad.OUTPUT_NODE is True
 
 
@@ -456,7 +456,7 @@ def test_search_failure_does_not_sink_the_run(monkeypatch):
 
 
 def test_search_category_is_forwarded(monkeypatch):
-    """The vanilla category combo (P3-4) must reach the API; `any` must not."""
+    """The vanilla category combo must reach the API; `any` must not."""
     seen = {}
 
     def fake_search(query, category=None, sort=None, limit=12):
@@ -474,7 +474,7 @@ def test_search_category_is_forwarded(monkeypatch):
     assert seen["category"] is None
 
 
-# ── IS_CHANGED contracts (plan P0-1's regression class) ──────────────────────
+# ── IS_CHANGED contracts ─────────────────────────────────────────────────────
 
 
 def test_load_is_changed_is_stable_when_cached():
@@ -497,13 +497,13 @@ def test_login_is_always_dirty():
 def test_apply_has_no_is_changed_override():
     """
     Apply's dirtiness must come from its inputs alone. An IS_CHANGED override
-    returning NaN here is the credit-burn/api-hammer class of bug (plan P0-1) —
+    returning NaN here is the credit-burn/api-hammer class of bug —
     the node would re-run on every queue.
     """
     assert "IS_CHANGED" not in vars(apply_node.StyleRefApply)
 
 
-# ── Apply: sections filter (P5-3) ────────────────────────────────────────────
+# ── Apply: sections filter ───────────────────────────────────────────────────
 
 
 def test_sections_filter_reaches_the_api_and_the_cache_key(monkeypatch):
@@ -527,7 +527,7 @@ def test_sections_filter_reaches_the_api_and_the_cache_key(monkeypatch):
     assert calls[-1] is None
 
 
-# ── Facets: full schema coverage (P5-2 / D4) ─────────────────────────────────
+# ── Facets: full schema coverage ─────────────────────────────────────────────
 
 
 def test_facets_outputs_are_exactly_the_schema_sections_plus_custom_items():
@@ -636,7 +636,7 @@ def test_reference_images_errors_clearly_without_images():
         ri.StyleRefReferenceImages().fetch(make_style(ref="x", name="Bare"))
 
 
-# ── Load: save_to_library (P5-6) ─────────────────────────────────────────────
+# ── Load: save_to_library ────────────────────────────────────────────────────
 
 
 def test_save_to_library_saves_once_per_session(monkeypatch):
@@ -690,7 +690,7 @@ def test_own_styles_are_not_re_saved(monkeypatch):
     assert "Already your own style" in out["ui"]["text"][0]
 
 
-# ── Load: ETag revalidation (P5-8) ───────────────────────────────────────────
+# ── Load: ETag revalidation ──────────────────────────────────────────────────
 
 
 def test_cache_off_revalidates_with_the_stored_etag(monkeypatch):

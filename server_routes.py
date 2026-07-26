@@ -9,7 +9,7 @@ Everything here is optional. If ComfyUI's server module isn't importable — a
 headless test run, an API-only embed, a future frontend rewrite — importing this
 fails, `__init__` catches it, and the nodes carry on with the plain text field.
 The JS side probes /styleref/search once at startup and hides its button when
-these routes are absent (plan P3-7), so both halves degrade together.
+these routes are absent, so both halves degrade together.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from styleref_nodes.load import bump_refresh
 
 
 def _card(entry: dict) -> dict:
-    """The picker-row shape. heroImage feeds the row thumbnail (plan P3-1)."""
+    """The picker-row shape. heroImage feeds the row thumbnail."""
     return {
         "slug": entry.get("slug"),
         "name": entry.get("name"),
@@ -143,7 +143,7 @@ async def styleref_my_styles(request: web.Request) -> web.Response:
                 }
                 for s in (payload.get("styles") or [])
             ],
-            # Passed back as ?cursor= for the dialog's Next button (plan P3-6).
+            # Passed back as ?cursor= for the dialog's Next button.
             "nextCursor": payload.get("nextCursor"),
         }
     )

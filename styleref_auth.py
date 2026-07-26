@@ -143,7 +143,7 @@ def is_headless(env: dict[str, str] | None = None) -> bool:
     """
     True when we almost certainly cannot open a browser on this machine.
 
-    Plan risk 9.2: a large share of ComfyUI installs are remote GPU boxes where
+    a large share of ComfyUI installs are remote GPU boxes where
     the loopback flow cannot work *at all* — localhost is the wrong machine.
     Detecting that up front lets the Login node print the STYLEREF_TOKEN
     instructions instead of hanging on a callback that will never arrive.
@@ -231,7 +231,7 @@ class _CallbackHandler(BaseHTTPRequestHandler):
         code = (params.get("code") or [None])[0]
         state = (params.get("state") or [None])[0]
 
-        # Validate BEFORE choosing the page (plan P0-4): the browser must never
+        # Validate BEFORE choosing the page: the browser must never
         # claim success while the node reports a failed sign-in.
         if not code or state != type(self).expected_state:
             # A state mismatch is the CSRF case: discard the code entirely.
@@ -387,7 +387,7 @@ def bearer_token() -> str | None:
     The token to send, or None for anonymous.
 
     STYLEREF_TOKEN wins over stored credentials — it is the documented path for
-    headless installs (plan risk 9.2), so it must not be second-guessed.
+    headless installs, so it must not be second-guessed.
     """
     env_token = (os.environ.get("STYLEREF_TOKEN") or "").strip()
     if env_token:
