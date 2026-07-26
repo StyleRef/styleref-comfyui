@@ -31,7 +31,8 @@ server console at startup.
 
 1. Add **StyleRef Load** and paste a slug from the
    [gallery](https://styleref.io/gallery) into `style_ref` (try
-   `9a2adtz6-cd8d77ee2f51`) — or click **Search styles…** to pick one.
+   `sbdlwwly-66ae1a89efdc`, the Renaissance Mythic Classicism style) — or
+   click **Search styles…** to pick one.
 2. Add **StyleRef Apply**, connect `style`, type a subject, pick your target.
 3. Wire `positive` / `negative` into your CLIP Text Encode nodes.
 

@@ -109,13 +109,37 @@ MULTILINE_WIDGETS = {
 # Node titles longer than this truncate in both frontends.
 MAX_TITLE = 28
 
-# Frontend model-download metadata: a missing checkpoint becomes a
-# guided download instead of a red error.
+# The gallery style every ready-to-run template loads. Picked for how legible
+# its effect is on the first queue: it compiles to tempera-on-panel technique
+# and a muted Renaissance palette, so the render is obviously not what the base
+# checkpoint would have produced alone. Two styles that read well on the
+# gallery make poor demos here — a naturalistic photography style lands close
+# to what SDXL does unprompted (the node looks like it did nothing), and a
+# typography-led graphic style asks the sampler for headline text it renders as
+# gibberish. This one carries no type at all and constrains no subject.
+GALLERY_STYLE_REF = "sbdlwwly-66ae1a89efdc"  # Renaissance Mythic Classicism
+
 # Placeholder ref for the "your own style" templates. Refs are opaque ids now
 # (no name lookup), so the templates ship an obvious placeholder the user swaps
 # for their own style's id — or fills via the node's "Search styles…" picker.
 OWN_STYLE_REF = "<your style id>"
 
+# Subjects for the consistency grid. Deliberately varied — interior, open
+# landscape, night exterior — because the grid's whole claim is that one style
+# holds across unrelated subjects. All three are plain scenes with no style
+# words of their own, so anything stylistic in the render came from StyleRef.
+GRID_SUBJECTS = [
+    "two friends flipping through crates of vinyl in a record shop",
+    "a lone surfer walking back along the beach at dusk",
+    "a roadside diner at night seen from the parking lot",
+]
+
+# The single-subject templates all use the first grid subject, so a user who
+# opens two templates sees the same prompt render consistently.
+DEMO_SUBJECT = GRID_SUBJECTS[0]
+
+# Frontend model-download metadata: a missing checkpoint becomes a guided
+# download instead of a red error.
 MODEL_SDXL = {
     "name": "sd_xl_base_1.0.safetensors",
     "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors",
@@ -427,11 +451,11 @@ def workflow_zimage_01_quickstart() -> dict[str, Any]:
         title="Z-Image quickstart",
     )
     load = g.place(
-        "StyleRefLoad", 0, load_widgets("9a2adtz6-cd8d77ee2f51"), title="Load — swap this slug"
+        "StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF), title="Load — swap this slug"
     )
     unet, clip, vae = _zimage_loaders(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets("a lighthouse on a rocky shore at dawn", "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 1)
@@ -451,14 +475,10 @@ def workflow_zimage_02_consistency() -> dict[str, Any]:
         "many subjects, a coherent set within this model.\n\n" + _ZIMAGE_SETUP_NOTE,
         title="Z-Image consistency",
     )
-    load = g.place("StyleRefLoad", 0, load_widgets("9a2adtz6-cd8d77ee2f51"))
+    load = g.place("StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF))
     unet, clip, vae = _zimage_loaders(g)
 
-    subjects = [
-        "a lighthouse on a rocky shore at dawn",
-        "a quiet street cafe in the rain",
-        "a hot air balloon over desert dunes",
-    ]
+    subjects = GRID_SUBJECTS
     for index, subject in enumerate(subjects):
         apply_node = g.place(
             "StyleRefApply", 1, apply_widgets(subject, "diffusion"), title=f"Subject {index + 1}"
@@ -491,7 +511,7 @@ def workflow_zimage_03_your_own_style() -> dict[str, Any]:
     )
     unet, clip, vae = _zimage_loaders(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets("a quiet street cafe in the rain", "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 1)
@@ -515,7 +535,7 @@ def workflow_zimage_04_reference_images() -> dict[str, Any]:
         title="Z-Image + references",
     )
     load = g.place(
-        "StyleRefLoad", 0, load_widgets("9a2adtz6-cd8d77ee2f51"), title="Load — a gallery slug"
+        "StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF), title="Load — a gallery slug"
     )
     unet, clip, vae = _zimage_loaders(g)
 
@@ -525,7 +545,7 @@ def workflow_zimage_04_reference_images() -> dict[str, Any]:
     g.link(refs, 0, ref_preview, 0)
 
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets("a lighthouse on a rocky shore at dawn", "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 1)
@@ -550,12 +570,12 @@ def workflow_01_quickstart() -> dict[str, Any]:
     load = g.place(
         "StyleRefLoad",
         0,
-        load_widgets("9a2adtz6-cd8d77ee2f51"),
+        load_widgets(GALLERY_STYLE_REF),
         title="Load — swap this slug",
     )
     checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets("a lighthouse on a rocky shore at dawn", "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     _preview(g, apply_node, 1)
     g.link(load, 0, apply_node, 0)
@@ -582,14 +602,10 @@ def workflow_02_consistency() -> dict[str, Any]:
         "Change any subject, or swap the style on StyleRef Load, and queue again.",
         title="Consistency grid",
     )
-    load = g.place("StyleRefLoad", 0, load_widgets("9a2adtz6-cd8d77ee2f51"))
+    load = g.place("StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF))
     checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
 
-    subjects = [
-        "a lighthouse on a rocky shore at dawn",
-        "a quiet street cafe in the rain",
-        "a hot air balloon over desert dunes",
-    ]
+    subjects = GRID_SUBJECTS
     for index, subject in enumerate(subjects):
         apply_node = g.place(
             "StyleRefApply", 1, apply_widgets(subject, "diffusion"), title=f"Subject {index + 1}"
@@ -627,7 +643,7 @@ def workflow_03_your_own_style() -> dict[str, Any]:
     )
     checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets("a quiet street cafe in the rain", "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 1)
@@ -659,7 +675,7 @@ def workflow_04_facets() -> dict[str, Any]:
     load = g.place(
         "StyleRefLoad",
         0,
-        load_widgets("9a2adtz6-cd8d77ee2f51"),
+        load_widgets(GALLERY_STYLE_REF),
         title="Load — swap this slug",
     )
     checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
@@ -667,7 +683,7 @@ def workflow_04_facets() -> dict[str, Any]:
     _facet_board(g, load, col=1)
 
     apply_node = g.place(
-        "StyleRefApply", 3, apply_widgets("a lighthouse on a rocky shore at dawn", "diffusion")
+        "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 3)
@@ -683,7 +699,7 @@ def workflow_zimage_05_facets() -> dict[str, Any]:
     load = g.place(
         "StyleRefLoad",
         0,
-        load_widgets("9a2adtz6-cd8d77ee2f51"),
+        load_widgets(GALLERY_STYLE_REF),
         title="Load — swap this slug",
     )
     unet, clip, vae = _zimage_loaders(g)
@@ -691,7 +707,7 @@ def workflow_zimage_05_facets() -> dict[str, Any]:
     _facet_board(g, load, col=1)
 
     apply_node = g.place(
-        "StyleRefApply", 3, apply_widgets("a lighthouse on a rocky shore at dawn", "diffusion")
+        "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 3)
