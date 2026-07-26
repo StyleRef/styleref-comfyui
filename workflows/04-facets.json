@@ -1,0 +1,1027 @@
+{
+  "last_node_id": 19,
+  "last_link_id": 21,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Note",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        320,
+        396
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "Inside the style \u2014 the Facets node.\nApply gives you one prompt string. Facets gives you the style's sections one output at a time \u2014 24 of them, exactly the sections you see on the style board at styleref.io, plus the six custom items.\nSix are previewed here so you can read them. Every other output is on the node too; drag any of them into a text input.\nThey are plain STRINGs, so they go anywhere text goes: a second CLIP encoder for regional conditioning, an IPAdapter or ControlNet prompt, a LoRA trigger line, or your own nodes. That is the escape hatch \u2014 use the palette without taking the whole prompt.\nThe render alongside is the paved road (Apply), so you can compare the assembled prompt against the parts it was built from."
+      ],
+      "title": "Facets"
+    },
+    {
+      "id": 2,
+      "type": "StyleRefLoad",
+      "pos": [
+        40,
+        504
+      ],
+      "size": [
+        320,
+        248
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "style",
+          "type": "STYLEREF_STYLE",
+          "links": [
+            1,
+            8
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "search_results",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StyleRefLoad"
+      },
+      "widgets_values": [
+        "9a2adtz6-cd8d77ee2f51",
+        "",
+        "any",
+        true,
+        false
+      ],
+      "title": "Load \u2014 swap this slug"
+    },
+    {
+      "id": 3,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        40,
+        800
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            15
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            13,
+            14
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            20
+          ],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "sd_xl_base_1.0.safetensors"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "StyleRefFacets",
+      "pos": [
+        420,
+        60
+      ],
+      "size": [
+        320,
+        636
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "style",
+          "type": "STYLEREF_STYLE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output_format",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 0
+        },
+        {
+          "name": "container_boundary",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "mood_personality",
+          "type": "STRING",
+          "links": [
+            4
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "colors",
+          "type": "STRING",
+          "links": [
+            2
+          ],
+          "slot_index": 3
+        },
+        {
+          "name": "typography",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 4
+        },
+        {
+          "name": "light_shadow",
+          "type": "STRING",
+          "links": [
+            3
+          ],
+          "slot_index": 5
+        },
+        {
+          "name": "spatial_hierarchy",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 6
+        },
+        {
+          "name": "surface_material",
+          "type": "STRING",
+          "links": [
+            5
+          ],
+          "slot_index": 7
+        },
+        {
+          "name": "motion",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 8
+        },
+        {
+          "name": "shape_language",
+          "type": "STRING",
+          "links": [
+            6
+          ],
+          "slot_index": 9
+        },
+        {
+          "name": "stroke_system",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 10
+        },
+        {
+          "name": "voice_language",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 11
+        },
+        {
+          "name": "post_processing",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 12
+        },
+        {
+          "name": "background_environment",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 13
+        },
+        {
+          "name": "artistic_mediums",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 14
+        },
+        {
+          "name": "ui_web",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 15
+        },
+        {
+          "name": "references",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 16
+        },
+        {
+          "name": "guardrails",
+          "type": "STRING",
+          "links": [
+            7
+          ],
+          "slot_index": 17
+        },
+        {
+          "name": "custom_style_item_1",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 18
+        },
+        {
+          "name": "custom_style_item_2",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 19
+        },
+        {
+          "name": "custom_style_item_3",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 20
+        },
+        {
+          "name": "custom_style_item_4",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 21
+        },
+        {
+          "name": "custom_style_item_5",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 22
+        },
+        {
+          "name": "custom_style_item_6",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 23
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StyleRefFacets"
+      },
+      "widgets_values": [],
+      "title": "Facets \u2014 every section"
+    },
+    {
+      "id": 5,
+      "type": "PreviewAny",
+      "pos": [
+        800,
+        60
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 2
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Facet \u2014 colors"
+    },
+    {
+      "id": 6,
+      "type": "PreviewAny",
+      "pos": [
+        800,
+        192
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Facet \u2014 light shadow"
+    },
+    {
+      "id": 7,
+      "type": "PreviewAny",
+      "pos": [
+        800,
+        324
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 4
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Facet \u2014 mood personality"
+    },
+    {
+      "id": 8,
+      "type": "PreviewAny",
+      "pos": [
+        800,
+        456
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 5
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Facet \u2014 surface material"
+    },
+    {
+      "id": 9,
+      "type": "PreviewAny",
+      "pos": [
+        800,
+        588
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 6
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Facet \u2014 shape language"
+    },
+    {
+      "id": 10,
+      "type": "PreviewAny",
+      "pos": [
+        800,
+        720
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 7
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Facet \u2014 guardrails"
+    },
+    {
+      "id": 11,
+      "type": "StyleRefApply",
+      "pos": [
+        1180,
+        60
+      ],
+      "size": [
+        320,
+        424
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "style",
+          "type": "STYLEREF_STYLE",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "STRING",
+          "links": [
+            9,
+            11
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "negative",
+          "type": "STRING",
+          "links": [
+            10,
+            12
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "attribution",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StyleRefApply"
+      },
+      "widgets_values": [
+        "a lighthouse on a rocky shore at dawn",
+        "diffusion",
+        "",
+        false,
+        "",
+        true
+      ]
+    },
+    {
+      "id": 12,
+      "type": "PreviewAny",
+      "pos": [
+        1180,
+        532
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 9
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Compiled positive"
+    },
+    {
+      "id": 13,
+      "type": "PreviewAny",
+      "pos": [
+        1180,
+        664
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 10
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Compiled negative"
+    },
+    {
+      "id": 14,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1560,
+        60
+      ],
+      "size": [
+        320,
+        198
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 13
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "title": "Positive (from StyleRef)"
+    },
+    {
+      "id": 15,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1560,
+        306
+      ],
+      "size": [
+        320,
+        198
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 14
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "title": "Negative (from StyleRef)"
+    },
+    {
+      "id": 16,
+      "type": "EmptyLatentImage",
+      "pos": [
+        1560,
+        552
+      ],
+      "size": [
+        320,
+        168
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            18
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ]
+    },
+    {
+      "id": 17,
+      "type": "KSampler",
+      "pos": [
+        1940,
+        60
+      ],
+      "size": [
+        320,
+        352
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 15
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 16
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 17
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            19
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        0,
+        "randomize",
+        25,
+        7.0,
+        "euler",
+        "normal",
+        1.0
+      ]
+    },
+    {
+      "id": 18,
+      "type": "VAEDecode",
+      "pos": [
+        2320,
+        60
+      ],
+      "size": [
+        320,
+        108
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 19
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            21
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 19,
+      "type": "SaveImage",
+      "pos": [
+        2320,
+        216
+      ],
+      "size": [
+        320,
+        112
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 21
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "StyleRef"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      4,
+      0,
+      "STYLEREF_STYLE"
+    ],
+    [
+      2,
+      4,
+      3,
+      5,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      4,
+      5,
+      6,
+      0,
+      "STRING"
+    ],
+    [
+      4,
+      4,
+      2,
+      7,
+      0,
+      "STRING"
+    ],
+    [
+      5,
+      4,
+      7,
+      8,
+      0,
+      "STRING"
+    ],
+    [
+      6,
+      4,
+      9,
+      9,
+      0,
+      "STRING"
+    ],
+    [
+      7,
+      4,
+      17,
+      10,
+      0,
+      "STRING"
+    ],
+    [
+      8,
+      2,
+      0,
+      11,
+      0,
+      "STYLEREF_STYLE"
+    ],
+    [
+      9,
+      11,
+      0,
+      12,
+      0,
+      "STRING"
+    ],
+    [
+      10,
+      11,
+      1,
+      13,
+      0,
+      "STRING"
+    ],
+    [
+      11,
+      11,
+      0,
+      14,
+      1,
+      "STRING"
+    ],
+    [
+      12,
+      11,
+      1,
+      15,
+      1,
+      "STRING"
+    ],
+    [
+      13,
+      3,
+      1,
+      14,
+      0,
+      "CLIP"
+    ],
+    [
+      14,
+      3,
+      1,
+      15,
+      0,
+      "CLIP"
+    ],
+    [
+      15,
+      3,
+      0,
+      17,
+      0,
+      "MODEL"
+    ],
+    [
+      16,
+      14,
+      0,
+      17,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      17,
+      15,
+      0,
+      17,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      18,
+      16,
+      0,
+      17,
+      3,
+      "LATENT"
+    ],
+    [
+      19,
+      17,
+      0,
+      18,
+      0,
+      "LATENT"
+    ],
+    [
+      20,
+      3,
+      2,
+      18,
+      1,
+      "VAE"
+    ],
+    [
+      21,
+      18,
+      0,
+      19,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "styleref": {
+      "notes": "Generated by scripts/build_workflows.py \u2014 edit the script, not this file."
+    }
+  },
+  "version": 0.4,
+  "models": [
+    {
+      "name": "sd_xl_base_1.0.safetensors",
+      "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors",
+      "directory": "checkpoints"
+    }
+  ]
+}

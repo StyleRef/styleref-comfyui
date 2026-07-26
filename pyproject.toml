@@ -1,0 +1,63 @@
+[project]
+name = "styleref-comfyui"
+version = "0.1.0"
+description = "Load StyleRef creative styles as ComfyUI nodes — define a style once, reuse it across FLUX, SDXL, and SD1.5."
+authors = [{ name = "StyleRef", email = "hello@styleref.io" }]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"      # ComfyUI's own floor; do not raise without checking theirs
+
+# No runtime dependencies on purpose. The pack imports with only the standard
+# library; the Reference Images node uses Pillow/numpy lazily at execution
+# time, which every ComfyUI install already ships. Declaring a dependency here
+# is the most common way a custom node pack fails to import on someone's
+# portable build.
+dependencies = []
+
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: End Users/Desktop",
+]
+
+[project.urls]
+Homepage = "https://styleref.io"
+Documentation = "https://docs.styleref.io/connectors/comfyui/install-and-quickstart"
+Repository = "https://github.com/StyleRef/styleref-comfyui"
+"Bug Tracker" = "https://github.com/StyleRef/styleref-comfyui/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.5", "pillow", "numpy"]
+
+# Comfy Registry metadata (https://docs.comfy.org/registry/overview)
+[tool.comfy]
+PublisherId = "styleref"
+DisplayName = "StyleRef"
+Icon = "https://styleref.io/icon.png"
+Repository = "https://github.com/StyleRef/styleref-comfyui"
+includes = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "BLE"]
+ignore = [
+    "E501",   # line length is enforced by the formatter, not the linter
+    "UP007",  # X | Y syntax is gated on the 3.9 floor above
+    # The pack directory is named after the repo, and ComfyUI discovers custom
+    # nodes by directory name — renaming it to satisfy the linter would change
+    # the install path users already have.
+    "N999",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests reach into private helpers deliberately, and ComfyUI's INPUT_TYPES is a
+# fixed uppercase name we cannot rename.
+"tests/*" = ["SLF001", "N802"]
+"styleref_nodes/*" = ["N802"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

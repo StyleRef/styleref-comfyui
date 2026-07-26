@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.9 is ComfyUI's floor and the version most likely to break on modern
+        # syntax; 3.12 is what current desktop builds ship.
+        python-version: ["3.9", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dev dependencies
+        # Pillow/numpy are test-only: the Reference Images node imports them
+        # lazily and gets them from the ComfyUI environment at runtime.
+        run: python -m pip install --upgrade pip pytest ruff pillow numpy
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest tests/ -q
+
+      - name: Verify workflow templates are regenerated
+        # The templates are generated; a hand-edit would be silently overwritten.
+        run: |
+          python scripts/build_workflows.py
+          git diff --exit-code workflows/ || {
+            echo "::error::workflows/ is stale — run: python scripts/build_workflows.py"
+            exit 1
+          }
+
+  import-check:
+    # The pack must import with only the standard library — the Reference
+    # Images node defers its PIL/numpy imports to execution time. Catches an
+    # accidental top-level `import requests` before a user's install does.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Import every node module
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, ".")
+          from styleref_nodes.apply import StyleRefApply
+          from styleref_nodes.facets import StyleRefFacets
+          from styleref_nodes.load import StyleRefLoad
+          from styleref_nodes.login import StyleRefLogin
+          from styleref_nodes.reference_images import StyleRefReferenceImages
+
+          for node in (
+              StyleRefLoad,
+              StyleRefApply,
+              StyleRefFacets,
+              StyleRefReferenceImages,
+              StyleRefLogin,
+          ):
+              spec = node.INPUT_TYPES()
+              assert "required" in spec, node
+              assert node.RETURN_TYPES and node.FUNCTION and node.CATEGORY, node
+              assert hasattr(node, node.FUNCTION), f"{node} has no {node.FUNCTION}()"
+              print(f"ok: {node.__name__}")
+          PY

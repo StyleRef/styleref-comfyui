@@ -1,0 +1,58 @@
+name: Publish to Comfy Registry
+
+# Tag-driven so a publish is always a deliberate, reviewable act:
+#   git tag v0.1.1 && git push origin v0.1.1
+#
+# The version in pyproject.toml must match the tag — the guard below enforces
+# that, because the Registry takes its version from the file, not the tag, and a
+# mismatch publishes the wrong number with no way to reuse it.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the tag matches pyproject version
+        env:
+          # Via env rather than direct interpolation — the ref is attacker-
+          # influenced in the general case and must not reach the shell as code.
+          TAG_REF: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os, re, sys, tomllib
+
+          tag = os.environ["TAG_REF"].lstrip("v")
+          with open("pyproject.toml", "rb") as fh:
+              version = tomllib.load(fh)["project"]["version"]
+
+          if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+              sys.exit(f"pyproject version {version!r} is not semver")
+          if tag != version:
+              sys.exit(f"tag v{tag} does not match pyproject version {version}")
+          print(f"ok: publishing {version}")
+          PY
+
+      - name: Install dev dependencies
+        run: python -m pip install --upgrade pip pytest ruff pillow numpy
+
+      - name: Lint and test before publishing
+        run: |
+          ruff check .
+          pytest tests/ -q
+
+      - name: Publish
+        uses: Comfy-Org/publish-node-action@v1
+        with:
+          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
