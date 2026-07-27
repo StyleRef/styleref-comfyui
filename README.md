@@ -27,11 +27,25 @@ cd ComfyUI/custom_nodes
 git clone https://github.com/StyleRef/styleref-comfyui
 ```
 
-Restart ComfyUI. Nothing to install: the pack declares no dependencies and
-imports on the standard library alone. The Reference Images node reaches for
-Pillow and numpy when it runs, and every ComfyUI install already ships those.
-Look for `[StyleRef] v1.0.4 — 5 nodes registered` in the
-server console at startup.
+Restart ComfyUI. Nothing to install: the pack declares no Python dependencies
+and imports on the standard library alone. The Reference Images node reaches
+for Pillow and numpy when it runs, and every ComfyUI install already ships
+those. Look for `[StyleRef] v1.0.4 — 5 nodes registered` in the server console
+at startup.
+
+**It does depend on styleref.io.** These nodes are a client, not a local
+library: every style is fetched from the StyleRef API at
+`https://styleref.io/api/v1`, and all prompt compilation happens there. So the
+pack needs a working internet connection and the service to be up — offline, or
+during an outage, the nodes fail with an error rather than degrading. Loaded
+styles are cached for the session, so a graph mid-run keeps working, but the
+first load of any style is a network call. `STYLEREF_API` repoints the client
+if you run your own instance.
+
+Two hosts, then, and no others: the API above, and — only when the Reference
+Images node runs — the storage host serving that style's inspiration images.
+Those image requests are deliberately anonymous: your token is never sent to a
+host outside the API. Nothing here spends credits.
 
 ## 60-second quickstart
 
