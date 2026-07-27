@@ -1,6 +1,6 @@
 {
-  "last_node_id": 13,
-  "last_link_id": 14,
+  "last_node_id": 15,
+  "last_link_id": 16,
   "nodes": [
     {
       "id": 1,
@@ -22,9 +22,9 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "Quickstart \u2014 no account needed.\n1. Queue \u2014 the FLUX checkpoint downloads on first run.\n2. Seeds randomize, so every queue is a fresh image.\n3. Change `subject` on StyleRef Apply and queue again.\nSwap `style_ref` on StyleRef Load for any slug from https://styleref.io/gallery \u2014 or use the Search styles\u2026 button.\n\nFLUX.1 dev (fp8 all-in-one). The checkpoint downloads on first use into checkpoints/ \u2014 one ~16 GB file containing the UNET, the T5 text encoder and the VAE.\nSampler defaults: 20 steps, CFG 1.0, euler/simple. Prompt strength is the FluxGuidance node (3.5), not CFG.\nFLUX takes no negative prompt. It is guidance distilled and runs at CFG 1.0, so there is no negative encoder on this canvas \u2014 the sampler's negative input gets a zeroed conditioning. StyleRef still compiles the negative and previews it; put anything you need from it into `subject` on Apply as a positive phrase (\"fully clothed\", \"no text or watermark\"). Raising CFG does not bring the negative back.\nStyle prompts use the `flux` target \u2014 FLUX reads prose with T5, so the whole style fits instead of being truncated at ~77 tokens the way an SDXL CLIP encoder would.\n\nStyle not coming through strongly enough?\nFLUX has a confident house look and will drift back to it. Two dials, in the order worth trying:\n1. `Flux guidance` (3.5 here, FLUX's default) is the blunt dial. 4\u20135 makes the style bite harder; past that the subject starts losing to it, and a dark style can go to pure black.\n2. Narrow `sections` on StyleRef Apply to the parts that define this style. For a period or painterly style that is usually `artistic_mediums,references,surface_material,colors` \u2014 the sections naming the medium, the era and the finish. Leaving it empty sends every section, and the identity-carrying ones render last, so a long style can read as generic.\nWhich sections matter depends on the style: for a geometric or layout-led style keep `shape_language` and `spatial_hierarchy` instead. Queue the Facets template to see what a style actually carries."
+        "Style prompt and reference images together.\nStyleRef Apply drives the sampler with the style's prompt; StyleRef Reference Images pulls the style's inspiration images out as a batch, previewed alongside. The prompt says how the style reads; the images show how it looks \u2014 wire the images into IPAdapter or a reference-only ControlNet to combine both.\nUse a gallery style that has inspiration images.\n\nFLUX.1 dev (fp8 all-in-one). The checkpoint downloads on first use into checkpoints/ \u2014 one ~16 GB file containing the UNET, the T5 text encoder and the VAE.\nSampler defaults: 20 steps, CFG 1.0, euler/simple. Prompt strength is the FluxGuidance node (3.5), not CFG.\nFLUX takes no negative prompt. It is guidance distilled and runs at CFG 1.0, so there is no negative encoder on this canvas \u2014 the sampler's negative input gets a zeroed conditioning. StyleRef still compiles the negative and previews it; put anything you need from it into `subject` on Apply as a positive phrase (\"fully clothed\", \"no text or watermark\"). Raising CFG does not bring the negative back.\nStyle prompts use the `flux` target \u2014 FLUX reads prose with T5, so the whole style fits instead of being truncated at ~77 tokens the way an SDXL CLIP encoder would.\n\nStyle not coming through strongly enough?\nFLUX has a confident house look and will drift back to it. Two dials, in the order worth trying:\n1. `Flux guidance` (3.5 here, FLUX's default) is the blunt dial. 4\u20135 makes the style bite harder; past that the subject starts losing to it, and a dark style can go to pure black.\n2. Narrow `sections` on StyleRef Apply to the parts that define this style. For a period or painterly style that is usually `artistic_mediums,references,surface_material,colors` \u2014 the sections naming the medium, the era and the finish. Leaving it empty sends every section, and the identity-carrying ones render last, so a long style can read as generic.\nWhich sections matter depends on the style: for a geometric or layout-led style keep `shape_language` and `spatial_hierarchy` instead. Queue the Facets template to see what a style actually carries."
       ],
-      "title": "Quickstart"
+      "title": "FLUX + references"
     },
     {
       "id": 2,
@@ -46,6 +46,7 @@
           "name": "style",
           "type": "STYLEREF_STYLE",
           "links": [
+            1,
             3
           ],
           "slot_index": 0
@@ -67,7 +68,7 @@
         true,
         false
       ],
-      "title": "Load \u2014 swap this slug"
+      "title": "Load \u2014 a gallery slug"
     },
     {
       "id": 3,
@@ -89,7 +90,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            8
+            10
           ],
           "slot_index": 0
         },
@@ -97,7 +98,7 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            5
+            7
           ],
           "slot_index": 1
         },
@@ -105,7 +106,7 @@
           "name": "VAE",
           "type": "VAE",
           "links": [
-            13
+            15
           ],
           "slot_index": 2
         }
@@ -126,17 +127,90 @@
     },
     {
       "id": 4,
-      "type": "StyleRefApply",
+      "type": "StyleRefReferenceImages",
       "pos": [
         420,
         60
       ],
       "size": [
         320,
-        424
+        136
       ],
       "flags": {},
       "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "style",
+          "type": "STYLEREF_STYLE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StyleRefReferenceImages"
+      },
+      "widgets_values": [
+        12
+      ],
+      "title": "Reference images"
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [
+        420,
+        244
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "Inspiration images"
+    },
+    {
+      "id": 6,
+      "type": "StyleRefApply",
+      "pos": [
+        420,
+        376
+      ],
+      "size": [
+        320,
+        424
+      ],
+      "flags": {},
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -150,8 +224,8 @@
           "name": "positive",
           "type": "STRING",
           "links": [
-            1,
-            4
+            4,
+            6
           ],
           "slot_index": 0
         },
@@ -159,7 +233,7 @@
           "name": "negative",
           "type": "STRING",
           "links": [
-            2
+            5
           ],
           "slot_index": 1
         },
@@ -183,24 +257,24 @@
       ]
     },
     {
-      "id": 5,
+      "id": 7,
       "type": "PreviewAny",
       "pos": [
         420,
-        532
+        848
       ],
       "size": [
         320,
         84
       ],
       "flags": {},
-      "order": 4,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
           "name": "source",
           "type": "*",
-          "link": 1
+          "link": 4
         }
       ],
       "outputs": [],
@@ -211,24 +285,24 @@
       "title": "Compiled positive"
     },
     {
-      "id": 6,
+      "id": 8,
       "type": "PreviewAny",
       "pos": [
         420,
-        664
+        980
       ],
       "size": [
         320,
         84
       ],
       "flags": {},
-      "order": 5,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
           "name": "source",
           "type": "*",
-          "link": 2
+          "link": 5
         }
       ],
       "outputs": [],
@@ -239,7 +313,7 @@
       "title": "Compiled negative"
     },
     {
-      "id": 7,
+      "id": 9,
       "type": "CLIPTextEncode",
       "pos": [
         800,
@@ -250,18 +324,18 @@
         198
       ],
       "flags": {},
-      "order": 6,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 5
+          "link": 7
         },
         {
           "name": "text",
           "type": "STRING",
-          "link": 4
+          "link": 6
         }
       ],
       "outputs": [
@@ -269,8 +343,8 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            6,
-            7
+            8,
+            9
           ],
           "slot_index": 0
         }
@@ -284,7 +358,7 @@
       "title": "Positive (from StyleRef)"
     },
     {
-      "id": 8,
+      "id": 10,
       "type": "FluxGuidance",
       "pos": [
         800,
@@ -295,13 +369,13 @@
         112
       ],
       "flags": {},
-      "order": 7,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 6
+          "link": 8
         }
       ],
       "outputs": [
@@ -309,7 +383,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            9
+            11
           ],
           "slot_index": 0
         }
@@ -323,7 +397,7 @@
       "title": "Flux guidance"
     },
     {
-      "id": 9,
+      "id": 11,
       "type": "ConditioningZeroOut",
       "pos": [
         800,
@@ -334,13 +408,13 @@
         84
       ],
       "flags": {},
-      "order": 8,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 7
+          "link": 9
         }
       ],
       "outputs": [
@@ -348,7 +422,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            10
+            12
           ],
           "slot_index": 0
         }
@@ -360,7 +434,7 @@
       "title": "FLUX has no negative"
     },
     {
-      "id": 10,
+      "id": 12,
       "type": "EmptySD3LatentImage",
       "pos": [
         800,
@@ -371,7 +445,7 @@
         168
       ],
       "flags": {},
-      "order": 9,
+      "order": 11,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -379,7 +453,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            11
+            13
           ],
           "slot_index": 0
         }
@@ -394,7 +468,7 @@
       ]
     },
     {
-      "id": 11,
+      "id": 13,
       "type": "KSampler",
       "pos": [
         1180,
@@ -405,28 +479,28 @@
         352
       ],
       "flags": {},
-      "order": 10,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 8
+          "link": 10
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 9
+          "link": 11
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 10
+          "link": 12
         },
         {
           "name": "latent_image",
           "type": "LATENT",
-          "link": 11
+          "link": 13
         }
       ],
       "outputs": [
@@ -434,7 +508,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            12
+            14
           ],
           "slot_index": 0
         }
@@ -453,7 +527,7 @@
       ]
     },
     {
-      "id": 12,
+      "id": 14,
       "type": "VAEDecode",
       "pos": [
         1560,
@@ -464,18 +538,18 @@
         108
       ],
       "flags": {},
-      "order": 11,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 12
+          "link": 14
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 13
+          "link": 15
         }
       ],
       "outputs": [
@@ -483,7 +557,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            14
+            16
           ],
           "slot_index": 0
         }
@@ -494,7 +568,7 @@
       "widgets_values": []
     },
     {
-      "id": 13,
+      "id": 15,
       "type": "SaveImage",
       "pos": [
         1560,
@@ -505,13 +579,13 @@
         112
       ],
       "flags": {},
-      "order": 12,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 14
+          "link": 16
         }
       ],
       "outputs": [],
@@ -526,22 +600,6 @@
   "links": [
     [
       1,
-      4,
-      0,
-      5,
-      0,
-      "STRING"
-    ],
-    [
-      2,
-      4,
-      1,
-      6,
-      0,
-      "STRING"
-    ],
-    [
-      3,
       2,
       0,
       4,
@@ -549,90 +607,122 @@
       "STYLEREF_STYLE"
     ],
     [
-      4,
+      2,
       4,
       0,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      2,
+      0,
+      6,
+      0,
+      "STYLEREF_STYLE"
+    ],
+    [
+      4,
+      6,
+      0,
       7,
-      1,
+      0,
       "STRING"
     ],
     [
       5,
+      6,
+      1,
+      8,
+      0,
+      "STRING"
+    ],
+    [
+      6,
+      6,
+      0,
+      9,
+      1,
+      "STRING"
+    ],
+    [
+      7,
       3,
       1,
-      7,
+      9,
       0,
       "CLIP"
     ],
     [
-      6,
-      7,
-      0,
       8,
-      0,
-      "CONDITIONING"
-    ],
-    [
-      7,
-      7,
-      0,
       9,
       0,
+      10,
+      0,
       "CONDITIONING"
     ],
     [
-      8,
-      3,
+      9,
+      9,
       0,
       11,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      10,
+      3,
+      0,
+      13,
       0,
       "MODEL"
     ],
     [
-      9,
-      8,
-      0,
       11,
+      10,
+      0,
+      13,
       1,
       "CONDITIONING"
     ],
     [
-      10,
-      9,
-      0,
+      12,
       11,
+      0,
+      13,
       2,
       "CONDITIONING"
     ],
     [
-      11,
-      10,
-      0,
-      11,
-      3,
-      "LATENT"
-    ],
-    [
-      12,
-      11,
-      0,
+      13,
       12,
       0,
-      "LATENT"
-    ],
-    [
       13,
       3,
+      "LATENT"
+    ],
+    [
+      14,
+      13,
+      0,
+      14,
+      0,
+      "LATENT"
+    ],
+    [
+      15,
+      3,
       2,
-      12,
+      14,
       1,
       "VAE"
     ],
     [
+      16,
       14,
-      12,
       0,
-      13,
+      15,
       0,
       "IMAGE"
     ]

@@ -23,7 +23,7 @@ from server import PromptServer
 import styleref_api as api
 from styleref_api import StyleRefError
 from styleref_auth import auth_status, clear_credentials, credentials_path, run_login_flow
-from styleref_nodes.load import bump_refresh
+from styleref_nodes.load import bump_refresh, fetch_style
 
 
 def _card(entry: dict) -> dict:
@@ -146,6 +146,39 @@ async def styleref_my_styles(request: web.Request) -> web.Response:
             # Passed back as ?cursor= for the dialog's Next button.
             "nextCursor": payload.get("nextCursor"),
         }
+    )
+
+
+@PromptServer.instance.routes.get("/styleref/resolve")
+async def styleref_resolve(request: web.Request) -> web.Response:
+    """
+    GET /styleref/resolve?ref=… → {ok, name, url}
+
+    Backs the name line under the Load node's `style_ref` field. A slug is
+    opaque — `72e1zdae-e2d54a18d090` tells you nothing about which style is
+    wired in, and until the graph is queued the node cannot say either. This
+    answers the question the moment the field changes.
+
+    It goes through the same client (and therefore the same session cache) the
+    node uses, so a resolve for a style that is about to be loaded costs one
+    request and the queue after it costs none.
+    """
+    ref = request.query.get("ref", "").strip()
+    if not ref:
+        return web.json_response({"ok": False})
+
+    try:
+        style = fetch_style(ref)
+    except StyleRefError as err:
+        # 200 with an error field, as with search: an unresolvable ref is
+        # ordinary (a half-typed slug, a private style while signed out) and
+        # belongs inline on the node, not in a red toast.
+        return web.json_response({"ok": False, "error": err.message})
+
+    # No author: the structured lane carries name/sections/referenceImages only,
+    # so the node body's attribution line is where a handle would come from.
+    return web.json_response(
+        {"ok": True, "name": style.get("name"), "url": style.get("url")}
     )
 
 

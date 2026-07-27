@@ -9,6 +9,10 @@
  *     styles) — each 8 rows deep with its own ‹ Prev / Next ›. The query filters
  *     both sections, so the search box narrows the library as well as the
  *     gallery;
+ *   - a read-only "loaded style" line under `style_ref` naming the style that
+ *     slug resolves to, so a graph says which style it uses without being
+ *     queued. It is marked non-serializing and sits mid-list, the one place
+ *     this file touches widget order;
  *   - a "↻ Refresh style" button that POSTs /styleref/refresh, which drops the
  *     server-side cache and dirties the node so the next queue re-downloads;
  *   - status + Sign in / Sign out buttons on StyleRef Login, backed by the
@@ -18,9 +22,13 @@
  *     (ai_tools, style_md, midjourney, json) but the `positive` output feeds
  *     a CLIP Text Encode — those are for copying out, not sampler text.
  *
- * It creates no custom widget type, overrides no drawing beyond the badge, and
- * touches no serialization — so if a ComfyUI frontend release changes the
- * extension API and this stops loading, the nodes degrade to exactly what they
+ * It creates no custom widget type and overrides no drawing beyond the badge.
+ * The one widget it inserts rather than appends is flagged out of serialization
+ * both ways frontends read that flag, because `widgets_values` is positional
+ * and a serialising widget mid-list would shift every value after it.
+ *
+ * If a ComfyUI frontend release changes the extension API and this stops
+ * loading, the nodes degrade to exactly what they
  * are without it: text fields you type into. That is the plan's
  * "degraded-but-unbreakable fallback", and it is why the node's own `search` +
  * `category` inputs exist in Python too.
@@ -71,10 +79,10 @@ async function probeRoutes() {
 async function fetchJson(url) {
     try {
         const res = await fetch(url);
-        if (!res.ok) return { styles: [], error: `Search failed (${res.status})` };
+        if (!res.ok) return { styles: [], error: `Request failed (${res.status})` };
         return await res.json();
     } catch (err) {
-        return { styles: [], error: `Search failed: ${err?.message ?? err}` };
+        return { styles: [], error: `Request failed: ${err?.message ?? err}` };
     }
 }
 
@@ -581,6 +589,116 @@ function setStatus(node, widget, text) {
     app.canvas?.setDirty?.(true, true);
 }
 
+const NAME_LABEL = "loaded style";
+const NAME_IDLE = "—";
+
+/**
+ * A read-only line naming the loaded style, placed immediately under
+ * `style_ref` — the field it describes.
+ *
+ * Two things make this safe to insert mid-list rather than append. It is marked
+ * non-serializing on both the widget and its options (frontends have read one
+ * or the other), and `computeSize` is left alone so layout stays the frontend's
+ * business. That matters because `widgets_values` is a positional array: a
+ * widget that serialises from the middle of the list shifts every value after
+ * it, and a saved workflow reloads with `search` holding the category, and so
+ * on. The existing buttons all append precisely to avoid that question.
+ *
+ * If a frontend ignores the flags, the failure is visible immediately — reload
+ * a saved graph and the fields are wrong — which is what the smoke test checks.
+ * Nothing here is load-bearing: drop this widget and the node is unchanged.
+ */
+function addStyleNameWidget(node) {
+    const widget = node.addWidget("text", NAME_LABEL, NAME_IDLE, () => {}, {
+        serialize: false,
+    });
+    widget.serialize = false;
+    widget.serializeValue = () => undefined;
+    // Read-only: it reports, it is not an input. `disabled` covers the canvas
+    // widget; `inputEl` exists only once a DOM-backed frontend has built it.
+    widget.disabled = true;
+    if (widget.inputEl) widget.inputEl.readOnly = true;
+
+    // Move it from the end (where addWidget put it) to just after `style_ref`.
+    const widgets = node.widgets ?? [];
+    const from = widgets.indexOf(widget);
+    const anchor = widgets.findIndex((w) => w.name === "style_ref");
+    if (from > -1 && anchor > -1 && from !== anchor + 1) {
+        widgets.splice(from, 1);
+        widgets.splice(anchor + 1, 0, widget);
+    }
+    return widget;
+}
+
+/** The widget's value. Truncated so a long name cannot widen the node. */
+function styleNameValue(res) {
+    if (!res || res.ok !== true) {
+        // A half-typed slug is the common case here, not a failure worth
+        // shouting about — the node still queues and reports properly.
+        return res?.error ? res.error : "not found";
+    }
+    const name = String(res.name ?? "").trim() || "Untitled style";
+    return name.length > 34 ? `${name.slice(0, 33)}…` : name;
+}
+
+/**
+ * Sets the widget's *value*, not its name — unlike the Login status line,
+ * which is a button whose name is its label. Here the name is the static
+ * "loaded style" caption and the value is the answer.
+ */
+function setStyleName(node, widget, text) {
+    widget.value = text;
+    node.setDirtyCanvas(true, true);
+    app.canvas?.setDirty?.(true, true);
+}
+
+async function refreshStyleName(node, nameWidget) {
+    if (!nameWidget) return;
+    const ref = (node.widgets?.find((w) => w.name === "style_ref")?.value ?? "")
+        .toString()
+        .trim();
+    if (!ref) {
+        setStyleName(node, nameWidget, NAME_IDLE);
+        return;
+    }
+    setStyleName(node, nameWidget, "resolving…");
+    const res = await fetchJson(`/styleref/resolve?ref=${encodeURIComponent(ref)}`);
+    // The field may have moved on while the request was in flight (typing is
+    // faster than a round trip); a stale answer must not overwrite a newer one.
+    const current = (node.widgets?.find((w) => w.name === "style_ref")?.value ?? "")
+        .toString()
+        .trim();
+    if (current !== ref) return;
+    setStyleName(node, nameWidget, styleNameValue(res));
+}
+
+/**
+ * Resolve on a settled edit, not on every keystroke — a slug is pasted or typed
+ * in bursts, and one request per character would hammer the API for prefixes
+ * that cannot resolve anyway.
+ */
+function watchStyleRef(node, nameWidget) {
+    const refWidget = node.widgets?.find((w) => w.name === "style_ref");
+    if (!refWidget) return;
+
+    let timer = null;
+    const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => refreshStyleName(node, nameWidget), 400);
+    };
+
+    const previous = refWidget.callback;
+    refWidget.callback = function (...args) {
+        const out = previous?.apply(this, args);
+        schedule();
+        return out;
+    };
+
+    // Templates and reloaded graphs arrive with the field already filled, so
+    // the name must appear without the user touching anything.
+    schedule();
+}
+
 async function refreshLoginStatus(node, statusWidget) {
     try {
         const res = await fetchJson("/styleref/auth/status");
@@ -618,6 +736,16 @@ app.registerExtension({
             nodeType.prototype.onNodeCreated = function () {
                 const result = onCreated?.apply(this, arguments);
 
+                // The name line, directly under `style_ref`. A slug says
+                // nothing about which style is wired in, and before the first
+                // queue the node cannot say either — so resolve it as soon as
+                // the field settles.
+                let nameWidget = null;
+                if (routesAvailable !== false) {
+                    nameWidget = addStyleNameWidget(this);
+                    watchStyleRef(this, nameWidget);
+                }
+
                 // Only add the search button when the backend routes exist
                 // — otherwise it could only 404.
                 if (routesAvailable !== false) {
@@ -632,6 +760,7 @@ app.registerExtension({
                         refWidget.value = chosen;
                         refWidget.callback?.(chosen);
                         this.setDirtyCanvas(true, true);
+                        refreshStyleName(this, nameWidget);
                     });
                 }
 

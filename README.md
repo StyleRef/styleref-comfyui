@@ -31,8 +31,8 @@ server console at startup.
 
 1. Add **StyleRef Load** and paste a slug from the
    [gallery](https://styleref.io/gallery) into `style_ref` (try
-   `sbdlwwly-66ae1a89efdc`, the Renaissance Mythic Classicism style) — or
-   click **Search styles…** to pick one.
+   `72e1zdae-e2d54a18d090`, the Noir Low-Key Portrait style) — or click
+   **Search styles…** to pick one.
 2. Add **StyleRef Apply**, connect `style`, type a subject, pick your target.
 3. Wire `positive` / `negative` into your CLIP Text Encode nodes.
 
@@ -43,7 +43,7 @@ canvas.
 
 | Node | Sign-in | What it does |
 | --- | --- | --- |
-| **StyleRef Load** | No | Fetch a style by share slug or share URL — and, signed in, your own private styles by id or `/styles/{id}` URL. Includes gallery search with a picker dialog and a ↻ Refresh button. |
+| **StyleRef Load** | No | Fetch a style by share slug or share URL — and, signed in, your own private styles by id or `/styles/{id}` URL. Names the loaded style on the node, plus gallery search with a picker dialog and a ↻ Refresh button. |
 | **StyleRef Apply** | No | Compose a subject with a style into `positive` / `negative` prompts for a chosen target, with a prompt preview in the node body. |
 | **StyleRef Facets** | No | Every schema section as its own output — exactly the style board's section list, plus the six custom style items. |
 | **StyleRef Reference Images** | No | The style's inspiration images as an IMAGE batch — for IPAdapter and reference conditioning. |
@@ -66,22 +66,36 @@ and it lands in your library. Load it here by its share slug or id
 
 ## Workflow templates
 
+The templates at the root run on **FLUX.1 dev** (the Comfy-Org fp8 all-in-one
+checkpoint, downloaded on first queue). FLUX reads the prompt with T5, so a
+full compiled style fits — an SDXL CLIP encoder truncates it at ~77 tokens,
+which is why the style washes out there no matter which checkpoint you use.
+
 | File | Sign-in | Story |
 | --- | --- | --- |
 | [`01-quickstart.json`](workflows/01-quickstart.json) | No | Load → Apply → generate |
 | [`02-consistency-grid.json`](workflows/02-consistency-grid.json) | No | One style, three subjects, side by side |
 | [`03-your-own-style.json`](workflows/03-your-own-style.json) | Yes | Extract on the web, load your own style here |
-| [`04-facets.json`](workflows/04-facets.json) | No | Every section of the style as its own output, next to a normal render |
+| [`04-reference-images.json`](workflows/04-reference-images.json) | No | The style's inspiration images as a batch, next to a render |
+| [`05-facets.json`](workflows/05-facets.json) | No | Every section of the style as its own output, next to a normal render |
 
 A parallel set wired for **Z-Image Turbo** (an S3-DiT model — UNET + Qwen text
 encoder + VAE, compiled from the `diffusion` target) lives in
-[`workflows/z-image/`](workflows/z-image): the same quickstart, consistency,
-your-own-style and facets stories, plus a reference-images demo. The three
-model files download on first run.
+[`workflows/z-image/`](workflows/z-image): the same five stories on that
+loader stack. The three model files download on first run.
 
-**Z-Image takes no negative prompt.** It runs without classifier-free guidance,
-so the Z-Image templates carry no negative encoder — the sampler's negative
-input gets a zeroed conditioning, as in a FLUX graph. StyleRef still compiles
+The two sets load **different gallery styles on purpose.** How well a style
+demos is a property of the style *and* the model. FLUX is strongest at light
+and tonality, so its templates load a noir style — hard key, crushed blacks,
+monochrome. Z-Image reproduces painterly technique faithfully, so its
+templates load a Renaissance tempera style. Swap either for any slug from the
+[gallery](https://styleref.io/gallery); these are starting points, not
+limits.
+
+**Neither FLUX nor Z-Image takes a negative prompt.** Both are guidance
+distilled and run at CFG 1.0, where the negative branch is multiplied out
+entirely — so neither set carries a negative encoder, and the sampler's
+negative input gets a zeroed conditioning. StyleRef still compiles
 the negative and previews it on the canvas; fold anything you need from it into
 `subject` on Apply as a positive phrase. Raising CFG does not bring it back.
 

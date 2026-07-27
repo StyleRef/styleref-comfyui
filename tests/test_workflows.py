@@ -55,16 +55,30 @@ def test_extraction_template_is_gone():
     assert "03-your-own-style.json" in {os.path.basename(p) for p in FILES}
 
 
-def test_zimage_set_ships_its_five_workflows():
-    """The Z-Image folder carries the root's stories plus its own two demos."""
+STORIES = [
+    "01-quickstart.json",
+    "02-consistency-grid.json",
+    "03-your-own-style.json",
+    "04-reference-images.json",
+    "05-facets.json",
+]
+
+
+def test_sdxl_set_ships_every_story():
+    """
+    The root (SDXL) set must tell all five stories. It shipped without the
+    reference-images template once, which nothing caught: every other test
+    iterates whatever happens to be on disk, so a missing file is simply a
+    story never checked. Pinning the set is what makes an omission fail.
+    """
+    root = {_relpath(p) for p in FILES if "/" not in _relpath(p)}
+    assert root == set(STORIES)
+
+
+def test_zimage_set_ships_every_story():
+    """The Z-Image folder tells the same five stories on its own loader stack."""
     zimage = {_relpath(p) for p in FILES if _relpath(p).startswith("z-image/")}
-    assert zimage == {
-        "z-image/01-quickstart.json",
-        "z-image/02-consistency-grid.json",
-        "z-image/03-your-own-style.json",
-        "z-image/04-reference-images.json",
-        "z-image/05-facets.json",
-    }
+    assert zimage == {f"z-image/{name}" for name in STORIES}
 
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
@@ -190,19 +204,30 @@ _MODEL_DIRECTORIES = {"checkpoints", "diffusion_models", "text_encoders", "vae"}
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
 def test_model_loaders_carry_download_metadata(path):
-    """A missing model should be a guided download, not a red error —
-    for every loader type (checkpoints and the Z-Image UNET/CLIP/VAE stack)."""
+    """
+    A missing model should be a guided download, not a silently-substituted
+    combo value — for every loader type (checkpoints and the Z-Image
+    UNET/CLIP/VAE stack).
+
+    The metadata must be on the *node*, under `properties.models`: that is
+    where ComfyUI looks when deciding whether to offer the download. This
+    assertion used to read the workflow-level `models` key instead, which is
+    why every template shipped that key and none of them prompted.
+    """
     graph = _load(path)
-    loader_files = {
-        n["widgets_values"][0] for n in graph["nodes"] if n["type"] in _MODEL_LOADERS
-    }
-    if not loader_files:
+    loaders = [n for n in graph["nodes"] if n["type"] in _MODEL_LOADERS]
+    if not loaders:
         return
-    declared = {m["name"] for m in graph.get("models", [])}
-    assert loader_files <= declared, f"models metadata missing: {loader_files - declared}"
-    for model in graph.get("models", []):
-        assert model["url"].startswith("https://")
-        assert model["directory"] in _MODEL_DIRECTORIES
+
+    for node in loaders:
+        declared = node["properties"].get("models")
+        assert declared, f"{node['type']} carries no properties.models"
+        # The name must match the widget, or the frontend cannot tell which
+        # missing file this download would satisfy.
+        assert {m["name"] for m in declared} == {node["widgets_values"][0]}
+        for model in declared:
+            assert model["url"].startswith("https://")
+            assert model["directory"] in _MODEL_DIRECTORIES
 
 
 def test_node_slot_tables_cover_every_linked_node_type():
@@ -216,7 +241,7 @@ def test_node_slot_tables_cover_every_linked_node_type():
                 assert node_type in INPUTS, f"{node_type} inputs undeclared"
 
 
-FACETS_FILES = ["04-facets.json", "z-image/05-facets.json"]
+FACETS_FILES = ["05-facets.json", "z-image/05-facets.json"]
 
 
 @pytest.mark.parametrize("name", FACETS_FILES)
@@ -299,8 +324,8 @@ def test_consistency_template_shows_one_style_many_subjects():
 
 
 def test_prompt_previews_exist_where_promised():
-    """Templates 01 and 04 make the compiled prompts visible."""
-    for name in ("01-quickstart.json", "04-facets.json"):
+    """Templates 01 and 05 make the compiled prompts visible."""
+    for name in ("01-quickstart.json", "05-facets.json"):
         graph = _load(os.path.join(WORKFLOW_DIR, name))
         assert any(n["type"] == "PreviewAny" for n in graph["nodes"]), name
 

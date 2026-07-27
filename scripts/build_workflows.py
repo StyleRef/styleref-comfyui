@@ -54,6 +54,7 @@ OUTPUTS = {
     "StyleRefReferenceImages": [("images", "IMAGE"), ("count", "INT")],
     "StyleRefLogin": [("status", "STRING")],
     "CheckpointLoaderSimple": [("MODEL", "MODEL"), ("CLIP", "CLIP"), ("VAE", "VAE")],
+    "FluxGuidance": [("CONDITIONING", "CONDITIONING")],
     "UNETLoader": [("MODEL", "MODEL")],
     "CLIPLoader": [("CLIP", "CLIP")],
     "VAELoader": [("VAE", "VAE")],
@@ -76,6 +77,7 @@ INPUTS = {
     "StyleRefReferenceImages": [("style", "STYLEREF_STYLE")],
     "CLIPTextEncode": [("clip", "CLIP"), ("text", "STRING")],
     "ConditioningZeroOut": [("conditioning", "CONDITIONING")],
+    "FluxGuidance": [("conditioning", "CONDITIONING")],
     "KSampler": [
         ("model", "MODEL"),
         ("positive", "CONDITIONING"),
@@ -109,15 +111,30 @@ MULTILINE_WIDGETS = {
 # Node titles longer than this truncate in both frontends.
 MAX_TITLE = 28
 
-# The gallery style every ready-to-run template loads. Picked for how legible
-# its effect is on the first queue: it compiles to tempera-on-panel technique
-# and a muted Renaissance palette, so the render is obviously not what the base
-# checkpoint would have produced alone. Two styles that read well on the
-# gallery make poor demos here — a naturalistic photography style lands close
-# to what SDXL does unprompted (the node looks like it did nothing), and a
-# typography-led graphic style asks the sampler for headline text it renders as
-# gibberish. This one carries no type at all and constrains no subject.
-GALLERY_STYLE_REF = "sbdlwwly-66ae1a89efdc"  # Renaissance Mythic Classicism
+# The gallery style each set loads. Deliberately different per model, because
+# "which style demos well" is a property of the pair, not of the style.
+#
+# Z-Image renders a painterly style faithfully — panel texture, contour-led
+# figures, a muted Renaissance palette — so it gets the painterly one.
+#
+# FLUX does not. It has a strong photoreal house look and reverts to it,
+# and it is specifically weak at reproducing painterly technique; the usual
+# remedy in the ecosystem is a style LoRA, which is far too much apparatus for
+# a first-run demo. Rather than ship a demo that quietly under-delivers, the
+# FLUX set uses a style whose identity is *light and tonality* — hard key,
+# crushed blacks, monochrome. That is what FLUX is genuinely good at, and
+# monochrome high-contrast output is unmistakably styled: nobody has to wonder
+# whether the node did anything.
+#
+# Both are subject-agnostic (the consistency grid needs that) and both carry
+# inspiration images (the reference-images template needs that).
+#
+# Two styles that read well on the gallery still demo badly anywhere here: a
+# naturalistic photography style lands close to what a base model does
+# unprompted, and a typography-led graphic style asks the sampler for headline
+# text. Neither of these does either.
+FLUX_STYLE_REF = "72e1zdae-e2d54a18d090"    # Noir Low-Key Portrait
+ZIMAGE_STYLE_REF = "sbdlwwly-66ae1a89efdc"  # Renaissance Mythic Classicism
 
 # Placeholder ref for the "your own style" templates. Refs are opaque ids now
 # (no name lookup), so the templates ship an obvious placeholder the user swaps
@@ -130,7 +147,8 @@ OWN_STYLE_REF = "<your style id>"
 # words of their own, so anything stylistic in the render came from StyleRef.
 GRID_SUBJECTS = [
     "two friends flipping through crates of vinyl in a record shop",
-    "a lone surfer walking back along the beach at dusk",
+    "A lone surfer strolled back along the beach at dusk, carrying her large "
+    "surfing board.",
     "a roadside diner at night seen from the parking lot",
 ]
 
@@ -140,9 +158,24 @@ DEMO_SUBJECT = GRID_SUBJECTS[0]
 
 # Frontend model-download metadata: a missing checkpoint becomes a guided
 # download instead of a red error.
-MODEL_SDXL = {
-    "name": "sd_xl_base_1.0.safetensors",
-    "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors",
+#
+# The Comfy-Org all-in-one fp8 repack — UNET + CLIP/T5 + VAE in one file, so
+# CheckpointLoaderSimple can load it. BFL's own flux1-dev.safetensors is
+# UNET-only and cannot.
+#
+# Why FLUX rather than SDXL, which more people have installed: StyleRef
+# compiles a long style spec (~480 tokens for a full style), and SDXL's CLIP
+# attends to ~77 tokens per chunk — the style is mostly truncated before it
+# reaches the sampler, whatever the checkpoint. FLUX reads the prompt with T5,
+# which takes the whole thing. This is the first model where the compiled
+# style and the text encoder actually fit each other.
+#
+# `flux1-schnell-fp8.safetensors` (Comfy-Org/flux1-schnell) is a drop-in swap:
+# Apache-2.0 instead of dev's non-commercial licence, and ~4 steps instead of
+# 20, at some cost in fidelity.
+MODEL_FLUX = {
+    "name": "flux1-dev-fp8.safetensors",
+    "url": "https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors",
     "directory": "checkpoints",
 }
 
@@ -217,6 +250,7 @@ class Graph:
         widgets: list[Any] | None = None,
         title: str | None = None,
         height: int | None = None,
+        models: list[dict[str, str]] | None = None,
     ) -> int:
         if title is not None and len(title) > MAX_TITLE:
             raise ValueError(f"title longer than {MAX_TITLE} chars truncates: {title!r}")
@@ -249,6 +283,12 @@ class Graph:
             "properties": {"Node name for S&R": node_type},
             "widgets_values": widgets,
         }
+        if models:
+            # ComfyUI reads download metadata from the *node's* properties —
+            # this is what turns a missing file into a download offer instead
+            # of a silently-substituted combo value. The workflow-level
+            # "models" key alone does not drive that prompt.
+            node["properties"]["models"] = models
         if title:
             node["title"] = title
         self.nodes.append(node)
@@ -303,28 +343,72 @@ def apply_widgets(subject: str, target: str) -> list[Any]:
     return [subject, target, "", False, "", True]
 
 
-def sampler_widgets(cfg: float) -> list[Any]:
-    # Seeds randomize: a fixed seed makes the second queue a silent
-    # cache no-op — deadly in a demo.
-    return [0, "randomize", 25, cfg, "euler", "normal", 1.0]
+def _flux_checkpoint(graph: Graph) -> int:
+    """
+    Place the FLUX checkpoint loader with its download metadata attached.
+
+    A helper rather than a bare `place()` call for the same reason
+    `_zimage_loaders` is one: the metadata has to travel with the node. When
+    declaring the download was a separate step, every template placed the
+    loader correctly and none of them offered the download.
+    """
+    return graph.place(
+        "CheckpointLoaderSimple", 0, [MODEL_FLUX["name"]], models=[MODEL_FLUX]
+    )
 
 
-def _sdxl_tail(graph: Graph, apply_node: int, checkpoint: int, col: int) -> None:
-    """Apply → two CLIP encoders → KSampler → VAEDecode → SaveImage."""
+def flux_sampler_widgets() -> list[Any]:
+    """
+    FLUX dev defaults: 20 steps, CFG 1.0, euler/simple.
+
+    CFG stays at 1.0 for the same reason it does on Z-Image — FLUX is guidance
+    distilled, and prompt strength is set with FluxGuidance instead. Raising CFG
+    here does not sharpen the style, it just doubles the work and burns the
+    image.
+    """
+    # Seeds randomize: a fixed seed makes the second queue a silent cache
+    # no-op — deadly in a demo.
+    return [0, "randomize", 20, 1.0, "euler", "simple", 1.0]
+
+
+def _flux_tail(graph: Graph, apply_node: int, checkpoint: int, col: int) -> None:
+    """
+    Apply → CLIP encoder → FluxGuidance → KSampler → VAEDecode → SaveImage.
+
+    **No negative encoder**, the same story as `_zimage_tail`: at CFG 1.0 the
+    negative branch is multiplied out entirely, so a second encoder would be
+    dead weight. The sampler's negative input takes a zeroed conditioning.
+    Apply's `negative` output stays wired to its Preview Any so the compiled
+    exclusions remain readable; fold anything you need from them into `subject`
+    as a positive phrase.
+
+    The latent is `EmptySD3LatentImage`, not `EmptyLatentImage`: FLUX works in a
+    16-channel latent space and the plain node emits 4 channels. This graph
+    previously shipped with the 4-channel node — it is the kind of mistake that
+    surfaces as a shape error or noise at sample time, never at build time.
+    """
     positive = graph.place("CLIPTextEncode", col, [""], title="Positive (from StyleRef)")
-    negative = graph.place("CLIPTextEncode", col, [""], title="Negative (from StyleRef)")
-    latent = graph.place("EmptyLatentImage", col, [1024, 1024, 1])
-    sampler = graph.place("KSampler", col + 1, sampler_widgets(cfg=7.0))
+    # FLUX's own default. It briefly shipped at 5.0 here, to force a painterly
+    # style that FLUX was never going to reproduce; with a style the model is
+    # actually good at, that compensation stops helping and starts costing the
+    # subject. This style asks for crushed blacks and no fill, and guidance is
+    # a blunt "obey harder" dial — over-driven, the frame goes to pure black and
+    # the subject dissolves into it. Style adherence is the pairing's job, not
+    # this number's.
+    guidance = graph.place("FluxGuidance", col, [3.5], title="Flux guidance")
+    zero_out = graph.place("ConditioningZeroOut", col, [], title="FLUX has no negative")
+    latent = graph.place("EmptySD3LatentImage", col, [1024, 1024, 1])
+    sampler = graph.place("KSampler", col + 1, flux_sampler_widgets())
     decode = graph.place("VAEDecode", col + 2)
     save = graph.place("SaveImage", col + 2, ["StyleRef"])
 
     graph.link(apply_node, 0, positive, 1)
-    graph.link(apply_node, 1, negative, 1)
     graph.link(checkpoint, 1, positive, 0)
-    graph.link(checkpoint, 1, negative, 0)
+    graph.link(positive, 0, guidance, 0)
+    graph.link(positive, 0, zero_out, 0)
     graph.link(checkpoint, 0, sampler, 0)
-    graph.link(positive, 0, sampler, 1)
-    graph.link(negative, 0, sampler, 2)
+    graph.link(guidance, 0, sampler, 1)
+    graph.link(zero_out, 0, sampler, 2)
     graph.link(latent, 0, sampler, 3)
     graph.link(sampler, 0, decode, 0)
     graph.link(checkpoint, 2, decode, 1)
@@ -373,18 +457,34 @@ def zimage_sampler_widgets() -> list[Any]:
     CFG stays at 1.0 because Z-Image has no negative channel to activate (see
     `_zimage_tail`) — raising it only oversaturates and slows the sample down.
     """
+    # Seeds randomize: a fixed seed makes the second queue a silent cache
+    # no-op — deadly in a demo.
     return [0, "randomize", 8, 1.0, "euler", "simple", 1.0]
 
 
 def _zimage_loaders(graph: Graph) -> tuple[int, int, int]:
     """Place the Z-Image UNET + CLIP + VAE loaders. Returns their node ids."""
     unet = graph.place(
-        "UNETLoader", 0, [MODEL_ZIMAGE_UNET["name"], "default"], title="Z-Image UNET"
+        "UNETLoader",
+        0,
+        [MODEL_ZIMAGE_UNET["name"], "default"],
+        title="Z-Image UNET",
+        models=[MODEL_ZIMAGE_UNET],
     )
     clip = graph.place(
-        "CLIPLoader", 0, [MODEL_ZIMAGE_CLIP["name"], "lumina2", "default"], title="Qwen text encoder"
+        "CLIPLoader",
+        0,
+        [MODEL_ZIMAGE_CLIP["name"], "lumina2", "default"],
+        title="Qwen text encoder",
+        models=[MODEL_ZIMAGE_CLIP],
     )
-    vae = graph.place("VAELoader", 0, [MODEL_ZIMAGE_VAE["name"]], title="Z-Image VAE")
+    vae = graph.place(
+        "VAELoader",
+        0,
+        [MODEL_ZIMAGE_VAE["name"]],
+        title="Z-Image VAE",
+        models=[MODEL_ZIMAGE_VAE],
+    )
     return unet, clip, vae
 
 
@@ -439,6 +539,44 @@ _ZIMAGE_SETUP_NOTE = (
 )
 
 
+_FLUX_STYLE_TIP = (
+    "Style not coming through strongly enough?\n"
+    "FLUX has a confident house look and will drift back to it. Two dials, in "
+    "the order worth trying:\n"
+    "1. `Flux guidance` (3.5 here, FLUX's default) is the blunt dial. 4–5 makes "
+    "the style bite harder; past that the subject starts losing to it, and a "
+    "dark style can go to pure black.\n"
+    "2. Narrow `sections` on StyleRef Apply to the parts that define this "
+    "style. For a period or painterly style that is usually "
+    "`artistic_mediums,references,surface_material,colors` — the sections "
+    "naming the medium, the era and the finish. Leaving it empty sends every "
+    "section, and the identity-carrying ones render last, so a long style can "
+    "read as generic.\n"
+    "Which sections matter depends on the style: for a geometric or layout-led "
+    "style keep `shape_language` and `spatial_hierarchy` instead. Queue the "
+    "Facets template to see what a style actually carries."
+)
+
+
+_FLUX_SETUP_NOTE = (
+    "FLUX.1 dev (fp8 all-in-one). The checkpoint downloads on first use "
+    "into checkpoints/ — one ~16 GB file containing the UNET, the T5 text "
+    "encoder and the VAE.\n"
+    "Sampler defaults: 20 steps, CFG 1.0, euler/simple. Prompt strength is "
+    "the FluxGuidance node (3.5), not CFG.\n"
+    "FLUX takes no negative prompt. It is guidance distilled and runs at "
+    "CFG 1.0, so there is no negative encoder on this canvas — the sampler's "
+    "negative input gets a zeroed conditioning. StyleRef still compiles the "
+    "negative and previews it; put anything you need from it into `subject` "
+    "on Apply as a positive phrase (\"fully clothed\", \"no text or "
+    "watermark\"). Raising CFG does not bring the negative back.\n"
+    "Style prompts use the `flux` target — FLUX reads prose with T5, so the "
+    "whole style fits instead of being truncated at ~77 tokens the way an "
+    "SDXL CLIP encoder would.\n\n"
+    + _FLUX_STYLE_TIP
+)
+
+
 def workflow_zimage_01_quickstart() -> dict[str, Any]:
     """Z-Image quickstart: Load a gallery style → Apply → generate."""
     g = Graph()
@@ -451,7 +589,7 @@ def workflow_zimage_01_quickstart() -> dict[str, Any]:
         title="Z-Image quickstart",
     )
     load = g.place(
-        "StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF), title="Load — swap this slug"
+        "StyleRefLoad", 0, load_widgets(ZIMAGE_STYLE_REF), title="Load — swap this slug"
     )
     unet, clip, vae = _zimage_loaders(g)
     apply_node = g.place(
@@ -475,7 +613,7 @@ def workflow_zimage_02_consistency() -> dict[str, Any]:
         "many subjects, a coherent set within this model.\n\n" + _ZIMAGE_SETUP_NOTE,
         title="Z-Image consistency",
     )
-    load = g.place("StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF))
+    load = g.place("StyleRefLoad", 0, load_widgets(ZIMAGE_STYLE_REF))
     unet, clip, vae = _zimage_loaders(g)
 
     subjects = GRID_SUBJECTS
@@ -535,7 +673,7 @@ def workflow_zimage_04_reference_images() -> dict[str, Any]:
         title="Z-Image + references",
     )
     load = g.place(
-        "StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF), title="Load — a gallery slug"
+        "StyleRefLoad", 0, load_widgets(ZIMAGE_STYLE_REF), title="Load — a gallery slug"
     )
     unet, clip, vae = _zimage_loaders(g)
 
@@ -560,28 +698,29 @@ def workflow_01_quickstart() -> dict[str, Any]:
     g.note(
         0,
         "Quickstart — no account needed.\n"
-        "1. Set your SDXL checkpoint below (a missing model offers a download).\n"
-        "2. Queue. Seeds randomize, so every queue is a fresh image.\n"
+        "1. Queue — the FLUX checkpoint downloads on first run.\n"
+        "2. Seeds randomize, so every queue is a fresh image.\n"
         "3. Change `subject` on StyleRef Apply and queue again.\n"
         "Swap `style_ref` on StyleRef Load for any slug from "
-        "https://styleref.io/gallery — or use the Search styles… button.",
+        "https://styleref.io/gallery — or use the Search styles… button.\n\n"
+        + _FLUX_SETUP_NOTE,
         title="Quickstart",
     )
     load = g.place(
         "StyleRefLoad",
         0,
-        load_widgets(GALLERY_STYLE_REF),
+        load_widgets(FLUX_STYLE_REF),
         title="Load — swap this slug",
     )
-    checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
+    checkpoint = _flux_checkpoint(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
     )
     _preview(g, apply_node, 1)
     g.link(load, 0, apply_node, 0)
-    _sdxl_tail(g, apply_node, checkpoint, col=2)
+    _flux_tail(g, apply_node, checkpoint, col=2)
 
-    return g.to_json(models=[MODEL_SDXL])
+    return g.to_json(models=[MODEL_FLUX])
 
 
 def workflow_02_consistency() -> dict[str, Any]:
@@ -602,19 +741,19 @@ def workflow_02_consistency() -> dict[str, Any]:
         "Change any subject, or swap the style on StyleRef Load, and queue again.",
         title="Consistency grid",
     )
-    load = g.place("StyleRefLoad", 0, load_widgets(GALLERY_STYLE_REF))
-    checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
+    load = g.place("StyleRefLoad", 0, load_widgets(FLUX_STYLE_REF))
+    checkpoint = _flux_checkpoint(g)
 
     subjects = GRID_SUBJECTS
     for index, subject in enumerate(subjects):
         apply_node = g.place(
-            "StyleRefApply", 1, apply_widgets(subject, "diffusion"), title=f"Subject {index + 1}"
+            "StyleRefApply", 1, apply_widgets(subject, "flux"), title=f"Subject {index + 1}"
         )
         g.link(load, 0, apply_node, 0)
         _preview(g, apply_node, 1, suffix=f" {index + 1}")
-        _sdxl_tail(g, apply_node, checkpoint, col=2)
+        _flux_tail(g, apply_node, checkpoint, col=2)
 
-    return g.to_json(models=[MODEL_SDXL])
+    return g.to_json(models=[MODEL_FLUX])
 
 
 def workflow_03_your_own_style() -> dict[str, Any]:
@@ -630,7 +769,7 @@ def workflow_03_your_own_style() -> dict[str, Any]:
         "set action to `sign in` and queue again.\n"
         "2. Put your style's id in `style_ref` on StyleRef Load, or pick it\n"
         "   with the Search styles… button.\n"
-        "3. Set your SDXL checkpoint and queue.",
+        "3. Queue.\n\n" + _FLUX_SETUP_NOTE,
         title="Your own style",
     )
     login = g.place("StyleRefLogin", 0, [], title="Login — check status")
@@ -641,15 +780,15 @@ def workflow_03_your_own_style() -> dict[str, Any]:
         load_widgets(OWN_STYLE_REF),
         title="Load — your own style",
     )
-    checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
+    checkpoint = _flux_checkpoint(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 1)
-    _sdxl_tail(g, apply_node, checkpoint, col=2)
+    _flux_tail(g, apply_node, checkpoint, col=2)
 
-    return g.to_json(models=[MODEL_SDXL])
+    return g.to_json(models=[MODEL_FLUX])
 
 
 _FACETS_NOTE = (
@@ -668,28 +807,63 @@ _FACETS_NOTE = (
 )
 
 
-def workflow_04_facets() -> dict[str, Any]:
+def workflow_04_reference_images() -> dict[str, Any]:
+    """FLUX render + the style's inspiration images side by side."""
+    g = Graph()
+    g.note(
+        0,
+        "Style prompt and reference images together.\n"
+        "StyleRef Apply drives the sampler with the style's prompt; StyleRef "
+        "Reference Images pulls the style's inspiration images out as a batch, "
+        "previewed alongside. The prompt says how the style reads; the images "
+        "show how it looks — wire the images into IPAdapter or a "
+        "reference-only ControlNet to combine both.\n"
+        "Use a gallery style that has inspiration images.\n"
+        "\n" + _FLUX_SETUP_NOTE,
+        title="FLUX + references",
+    )
+    load = g.place(
+        "StyleRefLoad", 0, load_widgets(FLUX_STYLE_REF), title="Load — a gallery slug"
+    )
+    checkpoint = _flux_checkpoint(g)
+
+    refs = g.place("StyleRefReferenceImages", 1, [12], title="Reference images")
+    ref_preview = g.place("PreviewImage", 1, [], title="Inspiration images")
+    g.link(load, 0, refs, 0)
+    g.link(refs, 0, ref_preview, 0)
+
+    apply_node = g.place(
+        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
+    )
+    g.link(load, 0, apply_node, 0)
+    _preview(g, apply_node, 1)
+    _flux_tail(g, apply_node, checkpoint, col=2)
+
+    return g.to_json(models=[MODEL_FLUX])
+
+
+def workflow_05_facets() -> dict[str, Any]:
     """Every section of a style, exposed and readable, next to a normal render."""
     g = Graph()
     g.note(0, _FACETS_NOTE, title="Facets")
     load = g.place(
         "StyleRefLoad",
         0,
-        load_widgets(GALLERY_STYLE_REF),
+        load_widgets(FLUX_STYLE_REF),
         title="Load — swap this slug",
     )
-    checkpoint = g.place("CheckpointLoaderSimple", 0, [MODEL_SDXL["name"]])
+    checkpoint = _flux_checkpoint(g)
 
     _facet_board(g, load, col=1)
 
     apply_node = g.place(
-        "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
     _preview(g, apply_node, 3)
-    _sdxl_tail(g, apply_node, checkpoint, col=4)
+    _flux_tail(g, apply_node, checkpoint, col=4)
 
-    return g.to_json(models=[MODEL_SDXL])
+    return g.to_json(models=[MODEL_FLUX])
 
 
 def workflow_zimage_05_facets() -> dict[str, Any]:
@@ -699,7 +873,7 @@ def workflow_zimage_05_facets() -> dict[str, Any]:
     load = g.place(
         "StyleRefLoad",
         0,
-        load_widgets(GALLERY_STYLE_REF),
+        load_widgets(ZIMAGE_STYLE_REF),
         title="Load — swap this slug",
     )
     unet, clip, vae = _zimage_loaders(g)
@@ -716,13 +890,14 @@ def workflow_zimage_05_facets() -> dict[str, Any]:
     return g.to_json(models=MODELS_ZIMAGE)
 
 
-# Keyed by path relative to workflows/. The SDXL set lives at the root; the
+# Keyed by path relative to workflows/. The FLUX set lives at the root; the
 # Z-Image set lives in workflows/z-image/.
 WORKFLOWS = {
     "01-quickstart.json": workflow_01_quickstart,
     "02-consistency-grid.json": workflow_02_consistency,
     "03-your-own-style.json": workflow_03_your_own_style,
-    "04-facets.json": workflow_04_facets,
+    "04-reference-images.json": workflow_04_reference_images,
+    "05-facets.json": workflow_05_facets,
     "z-image/01-quickstart.json": workflow_zimage_01_quickstart,
     "z-image/02-consistency-grid.json": workflow_zimage_02_consistency,
     "z-image/03-your-own-style.json": workflow_zimage_03_your_own_style,

@@ -1,5 +1,5 @@
 {
-  "last_node_id": 19,
+  "last_node_id": 20,
   "last_link_id": 21,
   "nodes": [
     {
@@ -62,7 +62,7 @@
         "Node name for S&R": "StyleRefLoad"
       },
       "widgets_values": [
-        "sbdlwwly-66ae1a89efdc",
+        "72e1zdae-e2d54a18d090",
         "",
         "any",
         true,
@@ -98,8 +98,7 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            13,
-            14
+            12
           ],
           "slot_index": 1
         },
@@ -113,10 +112,17 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "CheckpointLoaderSimple"
+        "Node name for S&R": "CheckpointLoaderSimple",
+        "models": [
+          {
+            "name": "flux1-dev-fp8.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors",
+            "directory": "checkpoints"
+          }
+        ]
       },
       "widgets_values": [
-        "sd_xl_base_1.0.safetensors"
+        "flux1-dev-fp8.safetensors"
       ]
     },
     {
@@ -507,8 +513,7 @@
           "name": "negative",
           "type": "STRING",
           "links": [
-            10,
-            12
+            10
           ],
           "slot_index": 1
         },
@@ -524,7 +529,7 @@
       },
       "widgets_values": [
         "two friends flipping through crates of vinyl in a record shop",
-        "diffusion",
+        "flux",
         "",
         false,
         "",
@@ -605,7 +610,7 @@
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 13
+          "link": 12
         },
         {
           "name": "text",
@@ -618,7 +623,8 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            16
+            13,
+            14
           ],
           "slot_index": 0
         }
@@ -633,28 +639,62 @@
     },
     {
       "id": 15,
-      "type": "CLIPTextEncode",
+      "type": "FluxGuidance",
       "pos": [
         1560,
         306
       ],
       "size": [
         320,
-        198
+        112
       ],
       "flags": {},
       "order": 14,
       "mode": 0,
       "inputs": [
         {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 14
-        },
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 13
+        }
+      ],
+      "outputs": [
         {
-          "name": "text",
-          "type": "STRING",
-          "link": 12
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FluxGuidance"
+      },
+      "widgets_values": [
+        3.5
+      ],
+      "title": "Flux guidance"
+    },
+    {
+      "id": 16,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        1560,
+        466
+      ],
+      "size": [
+        320,
+        84
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 14
         }
       ],
       "outputs": [
@@ -668,26 +708,24 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "CLIPTextEncode"
+        "Node name for S&R": "ConditioningZeroOut"
       },
-      "widgets_values": [
-        ""
-      ],
-      "title": "Negative (from StyleRef)"
+      "widgets_values": [],
+      "title": "FLUX has no negative"
     },
     {
-      "id": 16,
-      "type": "EmptyLatentImage",
+      "id": 17,
+      "type": "EmptySD3LatentImage",
       "pos": [
         1560,
-        552
+        598
       ],
       "size": [
         320,
         168
       ],
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -701,7 +739,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "EmptyLatentImage"
+        "Node name for S&R": "EmptySD3LatentImage"
       },
       "widgets_values": [
         1024,
@@ -710,7 +748,7 @@
       ]
     },
     {
-      "id": 17,
+      "id": 18,
       "type": "KSampler",
       "pos": [
         1940,
@@ -721,7 +759,7 @@
         352
       ],
       "flags": {},
-      "order": 16,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -761,15 +799,15 @@
       "widgets_values": [
         0,
         "randomize",
-        25,
-        7.0,
+        20,
+        1.0,
         "euler",
-        "normal",
+        "simple",
         1.0
       ]
     },
     {
-      "id": 18,
+      "id": 19,
       "type": "VAEDecode",
       "pos": [
         2320,
@@ -780,7 +818,7 @@
         108
       ],
       "flags": {},
-      "order": 17,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
@@ -810,7 +848,7 @@
       "widgets_values": []
     },
     {
-      "id": 19,
+      "id": 20,
       "type": "SaveImage",
       "pos": [
         2320,
@@ -821,7 +859,7 @@
         112
       ],
       "flags": {},
-      "order": 18,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -930,65 +968,65 @@
     ],
     [
       12,
-      11,
+      3,
       1,
-      15,
-      1,
-      "STRING"
+      14,
+      0,
+      "CLIP"
     ],
     [
       13,
-      3,
-      1,
       14,
       0,
-      "CLIP"
+      15,
+      0,
+      "CONDITIONING"
     ],
     [
       14,
-      3,
-      1,
-      15,
+      14,
       0,
-      "CLIP"
+      16,
+      0,
+      "CONDITIONING"
     ],
     [
       15,
       3,
       0,
-      17,
+      18,
       0,
       "MODEL"
     ],
     [
       16,
-      14,
+      15,
       0,
-      17,
+      18,
       1,
       "CONDITIONING"
     ],
     [
       17,
-      15,
+      16,
       0,
-      17,
+      18,
       2,
       "CONDITIONING"
     ],
     [
       18,
-      16,
-      0,
       17,
+      0,
+      18,
       3,
       "LATENT"
     ],
     [
       19,
-      17,
-      0,
       18,
+      0,
+      19,
       0,
       "LATENT"
     ],
@@ -996,15 +1034,15 @@
       20,
       3,
       2,
-      18,
+      19,
       1,
       "VAE"
     ],
     [
       21,
-      18,
-      0,
       19,
+      0,
+      20,
       0,
       "IMAGE"
     ]
@@ -1019,8 +1057,8 @@
   "version": 0.4,
   "models": [
     {
-      "name": "sd_xl_base_1.0.safetensors",
-      "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors",
+      "name": "flux1-dev-fp8.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors",
       "directory": "checkpoints"
     }
   ]
