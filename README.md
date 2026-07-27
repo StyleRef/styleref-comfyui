@@ -27,8 +27,10 @@ cd ComfyUI/custom_nodes
 git clone https://github.com/StyleRef/styleref-comfyui
 ```
 
-Restart ComfyUI. No dependencies to install — the pack uses only the Python
-standard library. Look for `[StyleRef] v1.0.4 — 5 nodes registered` in the
+Restart ComfyUI. Nothing to install: the pack declares no dependencies and
+imports on the standard library alone. The Reference Images node reaches for
+Pillow and numpy when it runs, and every ComfyUI install already ships those.
+Look for `[StyleRef] v1.0.4 — 5 nodes registered` in the
 server console at startup.
 
 ## 60-second quickstart
