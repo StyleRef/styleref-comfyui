@@ -1,8 +1,12 @@
 # StyleRef nodes for ComfyUI
 
+<img src="https://raw.githubusercontent.com/StyleRef/styleref-comfyui/main/assets/workflow.webp" alt="One StyleRef style applied to seven different subjects" width="420" align="right">
+
 Define a creative style once on [StyleRef](https://styleref.io) — colors,
 lighting, mood, composition, guardrails — then load it as a node and reuse it
 across your workflows.
+
+Every frame on the right is the same style, a different subject.
 
 The style is compiled server-side for whichever model you point it at, so the
 same style produces prompt text phrased appropriately for each one.
@@ -24,7 +28,7 @@ git clone https://github.com/StyleRef/styleref-comfyui
 ```
 
 Restart ComfyUI. No dependencies to install — the pack uses only the Python
-standard library. Look for `[StyleRef] v1.0.1 — 5 nodes registered` in the
+standard library. Look for `[StyleRef] v1.0.2 — 5 nodes registered` in the
 server console at startup.
 
 ## 60-second quickstart
@@ -56,6 +60,13 @@ web app's copy-box format list. For the sampler in your graph use `flux` (FLUX
 models) or `diffusion` (SDXL, SD1.5, DALL·E-class); the other four are for
 copying the output out of ComfyUI, and the node warns if one feeds a CLIP
 encoder.
+
+### Browse the gallery
+
+[![The StyleRef gallery](https://raw.githubusercontent.com/StyleRef/styleref-comfyui/main/assets/gallery.webp)](https://styleref.io/gallery)
+
+Every style on [styleref.io/gallery](https://styleref.io/gallery) loads here by
+its slug — no account needed.
 
 ### Making your own styles
 

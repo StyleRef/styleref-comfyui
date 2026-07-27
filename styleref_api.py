@@ -25,7 +25,7 @@ SITE_URL = "https://styleref.io"
 
 # Identifies this surface in StyleRef's API telemetry (recordApiCall reads it).
 CLIENT_TAG = "comfyui"
-USER_AGENT = "styleref-comfyui/1.0.1 (+https://styleref.io)"
+USER_AGENT = "styleref-comfyui/1.0.2 (+https://styleref.io)"
 
 DEFAULT_TIMEOUT_S = 30
 
