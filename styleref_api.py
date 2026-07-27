@@ -31,7 +31,7 @@ DEFAULT_TIMEOUT_S = 30
 
 
 def api_base() -> str:
-    """Env override exists so the plugin can be pointed at a local dev server."""
+    """Env override exists so the nodes can be pointed at a local dev server."""
     return (os.environ.get("STYLEREF_API") or "").strip() or DEFAULT_API_BASE
 
 

@@ -52,7 +52,7 @@ def test_credentials_path_prefers_xdg():
 
 
 def test_credentials_path_matches_the_cli_default():
-    """CLI and plugin must share one file, or signing in twice becomes necessary."""
+    """CLI and nodes must share one file, or signing in twice becomes necessary."""
     path = auth.credentials_path({"HOME": "/home/u"})
     assert path == os.path.join("/home/u", ".config", "styleref", "credentials.json")
 

@@ -29,7 +29,7 @@ from styleref_api import DEFAULT_API_BASE, StyleRefError, request_json, site_ori
 
 # Identical to the CLI's scope set on purpose: the two tools share one
 # credentials file, so a login from either must satisfy both. (`extract` is in
-# the set for the CLI's sake; the plugin doesn't extract — that lives on the web
+# the set for the CLI's sake; these nodes don't extract — that lives on the web
 # app, where you can preview and refine the result.)
 SCOPES = "styles:read styles:write extract"
 

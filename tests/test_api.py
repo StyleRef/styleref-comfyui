@@ -218,7 +218,7 @@ def test_get_style_spec_reads_the_canonical_url_header(monkeypatch):
 
 def test_client_has_no_extraction_endpoints():
     """
-    Extraction is a web-app experience; the plugin must not grow it back
+    Extraction is a web-app experience; this pack must not grow it back
     quietly. The REST /extractions tier itself remains for CLI/agents.
     """
     assert not hasattr(api, "create_extraction")
@@ -279,7 +279,7 @@ def test_get_retries_on_5xx(monkeypatch):
 
 
 def test_client_tag_header_is_sent(monkeypatch):
-    """Telemetry attributes API usage to the plugin via X-StyleRef-Client."""
+    """Telemetry attributes API usage to this pack via X-StyleRef-Client."""
     captured = {}
 
     class _Response:

@@ -8,7 +8,7 @@ The style is compiled server-side for whichever model you point it at, so the
 same style produces prompt text phrased appropriately for each one.
 
 **No account needed** to load and apply public gallery styles. An account adds
-your own private styles. **Nothing in this plugin spends credits.**
+your own private styles. **Nothing in this node pack spends credits.**
 
 ---
 
@@ -125,7 +125,7 @@ detects the headless case and prints these instructions rather than hanging.
 
 ## Credits
 
-**Nothing in this plugin spends credits.** Loading, searching, and applying
+**Nothing in this node pack spends credits.** Loading, searching, and applying
 styles is free and unlimited within the public rate limit. Extraction — the one
 paid action — happens on [styleref.io](https://styleref.io), where you can
 preview and refine the result before it costs anything beyond the extraction
@@ -155,7 +155,7 @@ The nodes are a thin client over StyleRef's public
 [REST API v1](https://docs.styleref.io/for-ai-agents/rest-api/overview-and-authentication)
 ([OpenAPI](https://styleref.io/api/v1/openapi.json)). All prompt compilation
 happens server-side — this pack never writes style prose itself, so improvements
-to StyleRef's compiler reach you without a plugin update.
+to StyleRef's compiler reach you without an update to this pack.
 
 ## Docs & support
 
