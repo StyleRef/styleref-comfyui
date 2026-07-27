@@ -5,8 +5,8 @@ Apply is the paved road. This is the escape hatch: the style's sections come
 out as individual STRING outputs so any field can drive things a prompt string
 cannot — IPAdapter weights, conditioning regions, per-section text encoders.
 
-The output list is EXACTLY the style schema's section list (owner decision
-2026-07-22), in schema order, plus the six custom style items individually —
+The output list is EXACTLY the style schema's section list, in schema order,
+plus the six custom style items individually —
 nothing derived, nothing invented, so the node reads one-to-one against the
 style board on styleref.io. Output names are the schema's own section ids.
 The section list is data-driven from one constant: a future schema section is

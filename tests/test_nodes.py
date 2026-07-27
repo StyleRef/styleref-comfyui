@@ -65,10 +65,10 @@ def test_pack_registers_exactly_the_five_nodes():
 
 def test_targets_are_exactly_the_web_apps_copy_list_in_order():
     """
-    Owner decision 2026-07-22: the target list mirrors the web
-    app's copy-box format list exactly — same entries, same order — so the
-    style means the same thing here as on styleref.io. Source of truth:
-    PROMPT_FORMAT_OPTIONS in src/components/ui/PromptFormatDropdown.tsx.
+    The target list mirrors the web app's copy-box format list exactly — same
+    entries, same order — so a style means the same thing here as it does on
+    styleref.io. The web app's list is the source of truth; this test is what
+    catches the two drifting apart.
     """
     assert list(apply_node.TARGETS) == [
         "ai_tools",
@@ -149,9 +149,8 @@ def test_composition_handles_an_empty_side():
 
 def test_negative_merges_guardrails_and_extra_only():
     """
-    No injected boilerplate (owner decision 2026-07-22): the style's guardrails
-    are the authority, and anything generic belongs in extra_negative where it
-    stays visible.
+    No injected boilerplate: the style's guardrails are the authority, and
+    anything generic belongs in extra_negative, where the user can see it.
     """
     negative = apply_node.compose_negative(STYLE, "extra thing")
     assert "lens flares" in negative
@@ -406,8 +405,8 @@ def test_load_returns_ui_text_and_result_tuple(monkeypatch):
 
 def test_load_never_fetches_style_text(monkeypatch):
     """
-    STYLE.md moved to Apply's target list (owner decision 2026-07-22): Load has
-    no style_doc output and must never spend the extra text-fetch call.
+    STYLE.md is a target on Apply, not an output on Load — so Load has no
+    style_doc output and must never spend the extra text-fetch call.
     """
     monkeypatch.setattr(
         api, "get_style_spec", lambda ref, etag=None: ({"name": "Warm", "sections": {}}, None, None)
@@ -532,9 +531,9 @@ def test_sections_filter_reaches_the_api_and_the_cache_key(monkeypatch):
 
 def test_facets_outputs_are_exactly_the_schema_sections_plus_custom_items():
     """
-    Owner decision 2026-07-22: Facets mirrors the style board one-to-one — the
-    schema's section list in schema order, plus the six custom style items,
-    and NOTHING derived (no palette/primary_color/width/height/negative).
+    Facets mirrors the style board one-to-one — the schema's section list in
+    schema order, plus the six custom style items, and NOTHING derived (no
+    palette/primary_color/width/height/negative).
     """
     from styleref_nodes import facets as facets_node
 

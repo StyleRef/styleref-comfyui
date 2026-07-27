@@ -21,8 +21,7 @@ CATEGORY = "StyleRef"
 
 # Node-facing target → the server's `format` parameter.
 #
-# The list is EXACTLY the web app's copy-box format list (owner decision
-# 2026-07-22, superseding the earlier midjourney removal), in the same order:
+# The list is EXACTLY the web app's copy-box format list, in the same order:
 # AI Tools, STYLE.md, Flux, Midjourney, Diffusion, JSON. The style means the
 # same thing here as on styleref.io, format for format.
 #

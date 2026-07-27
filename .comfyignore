@@ -1,0 +1,24 @@
+# Excluded from the archive published to the Comfy Registry — NOT from the repo.
+#
+# Installing this pack copies the published archive into a user's custom_nodes/
+# directory, where it sits for as long as they have the pack. Nothing below is
+# imported at runtime (__init__.py loads styleref_nodes/* and server_routes
+# only), so shipping it would put files on thousands of machines that no
+# install ever reads.
+#
+# Everything here stays in the repository, where it is load-bearing: the tests
+# run in CI, and scripts/build_workflows.py generates workflows/ and is what a
+# contributor edits. Only the shipped package is smaller.
+#
+# workflows/ is deliberately NOT excluded — the templates are the product.
+
+tests/
+scripts/
+.github/
+
+# Tooling caches and editor droppings, in case a publish runs from a working
+# directory rather than a clean checkout.
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+.DS_Store
