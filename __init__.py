@@ -2,7 +2,7 @@
 StyleRef nodes for ComfyUI — https://styleref.io
 
 Define a creative style once on StyleRef, then load it as a node and reuse it
-across FLUX, SDXL, SD1.5, and natural-language targets.
+across your workflows.
 
 MIT licensed. Issues: https://github.com/StyleRef/styleref-comfyui
 """
@@ -46,7 +46,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 # progressive enhancement. Nothing here is required for the nodes to work.
 WEB_DIRECTORY = "./web"
 
-_FALLBACK_VERSION = "1.0.0"
+_FALLBACK_VERSION = "1.0.1"
 
 
 def _pack_version() -> str:

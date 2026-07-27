@@ -1,7 +1,7 @@
 [project]
 name = "styleref-comfyui"
-version = "1.0.0"
-description = "Load StyleRef creative styles as ComfyUI nodes — define a style once, reuse it across FLUX, SDXL, and SD1.5."
+version = "1.0.1"
+description = "StyleRef nodes for ComfyUI — load a creative style once, reuse it across your workflows"
 authors = [{ name = "StyleRef", email = "hello@styleref.io" }]
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -33,7 +33,7 @@ dev = ["pytest>=7", "ruff>=0.5", "pillow", "numpy"]
 [tool.comfy]
 PublisherId = "styleref"
 DisplayName = "StyleRef"
-Icon = "https://styleref.io/icon.png"
+Icon = "https://styleref.io/android-chrome-512x512.png"
 Repository = "https://github.com/StyleRef/styleref-comfyui"
 includes = []
 

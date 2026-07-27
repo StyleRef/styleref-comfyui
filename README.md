@@ -2,7 +2,7 @@
 
 Define a creative style once on [StyleRef](https://styleref.io) — colors,
 lighting, mood, composition, guardrails — then load it as a node and reuse it
-across FLUX, SDXL, SD1.5, and natural-language targets.
+across your workflows.
 
 The style is compiled server-side for whichever model you point it at, so the
 same style produces prompt text phrased appropriately for each one.
@@ -24,7 +24,7 @@ git clone https://github.com/StyleRef/styleref-comfyui
 ```
 
 Restart ComfyUI. No dependencies to install — the pack uses only the Python
-standard library. Look for `[StyleRef] v1.0.0 — 5 nodes registered` in the
+standard library. Look for `[StyleRef] v1.0.1 — 5 nodes registered` in the
 server console at startup.
 
 ## 60-second quickstart
