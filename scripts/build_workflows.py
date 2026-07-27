@@ -141,15 +141,22 @@ ZIMAGE_STYLE_REF = "sbdlwwly-66ae1a89efdc"  # Renaissance Mythic Classicism
 # for their own style's id — or fills via the node's "Search styles…" picker.
 OWN_STYLE_REF = "<your style id>"
 
-# Subjects for the consistency grid. Deliberately varied — interior, open
-# landscape, night exterior — because the grid's whole claim is that one style
-# holds across unrelated subjects. All three are plain scenes with no style
-# words of their own, so anything stylistic in the render came from StyleRef.
+# Subjects for the consistency grid. Deliberately varied — exterior at dusk,
+# interior, and an object with no figure at all — because the grid's whole
+# claim is that one style holds across unrelated subjects.
+#
+# Two of them say "dressed" outright. That is not prudishness: the Renaissance
+# style compiles an empty negative (it carries no guardrails), and Z-Image has
+# no negative channel to put one in, so a style steeped in classical painting
+# drifts to classical nudes unless the subject says otherwise. Positive
+# phrasing in the subject is the only lever either model leaves us.
 GRID_SUBJECTS = [
-    "two friends flipping through crates of vinyl in a record shop",
-    "A lone surfer strolled back along the beach at dusk, carrying her large "
-    "surfing board.",
-    "a roadside diner at night seen from the parking lot",
+    "A fully dressed teenager sitting on a rooftop ledge at dusk, dress in "
+    "#8A9FB5 color with ropes, knees up, headphones on, looking out over a "
+    "low-rise city as lights begin to switch on; laundry lines and a water "
+    "tank frame the foreground.",
+    "two friends flipping through crates of vinyl in a record shop, dressed",
+    "A Unicorn Toy",
 ]
 
 # The single-subject templates all use the first grid subject, so a user who
