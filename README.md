@@ -24,7 +24,7 @@ git clone https://github.com/StyleRef/styleref-comfyui
 ```
 
 Restart ComfyUI. No dependencies to install — the pack uses only the Python
-standard library. Look for `[StyleRef] v0.1.0 — 5 nodes registered` in the
+standard library. Look for `[StyleRef] v1.0.0 — 5 nodes registered` in the
 server console at startup.
 
 ## 60-second quickstart

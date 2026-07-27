@@ -1,6 +1,6 @@
 [project]
 name = "styleref-comfyui"
-version = "0.1.0"
+version = "1.0.0"
 description = "Load StyleRef creative styles as ComfyUI nodes — define a style once, reuse it across FLUX, SDXL, and SD1.5."
 authors = [{ name = "StyleRef", email = "hello@styleref.io" }]
 readme = "README.md"

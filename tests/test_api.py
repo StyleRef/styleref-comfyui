@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib
 import io
 import json
+import os
+import re
 import urllib.error
 
 import pytest
@@ -359,3 +362,26 @@ def test_get_style_spec_returns_etag_on_200(monkeypatch):
     spec, _url, etag = api.get_style_spec("abc")
     assert spec["name"] == "Warm"
     assert etag == 'W/"e2"'
+
+
+# ── version strings stay in sync ─────────────────────────────────────────────
+
+
+def test_version_strings_agree_with_pyproject():
+    """
+    The version lives in three places: pyproject (which the Registry publishes
+    and the release workflow checks the tag against), the User-Agent this client
+    sends, and __init__'s fallback for when pyproject cannot be read. Only the
+    first is enforced by anything, so the other two drift silently and the
+    telemetry then attributes traffic to a version nobody is running.
+    """
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    with open(os.path.join(root, "pyproject.toml"), encoding="utf-8") as fh:
+        declared = re.search(r'^version\s*=\s*"([^"]+)"', fh.read(), re.MULTILINE).group(1)
+
+    assert f"styleref-comfyui/{declared} " in api.USER_AGENT, (
+        f"USER_AGENT is {api.USER_AGENT!r}, pyproject says {declared}"
+    )
+
+    pack = importlib.import_module("__init__")
+    assert declared == pack._FALLBACK_VERSION
