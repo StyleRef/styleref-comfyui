@@ -16,10 +16,14 @@ tests/
 scripts/
 .github/
 
-# README artwork. The README references it by absolute URL, so GitHub and the
-# Registry both render it without the bytes riding along into every install.
-# workflows/*.webp are NOT excluded — those are the template thumbnails, and
-# ComfyUI reads them from disk next to each workflow JSON.
+# Artwork. consistency-grid.webp and gallery.webp are referenced by the README
+# via absolute URL, so GitHub and the Registry render them without the bytes
+# riding along into every install. workflow.webp is the animated source the
+# five workflows/*.jpg thumbnails were cut from — keep it, or regenerating them
+# means re-rendering the frames.
+#
+# workflows/*.jpg are NOT excluded: those are the thumbnails, and ComfyUI reads
+# them from disk next to each workflow JSON. They must ship.
 assets/
 
 # Tooling caches and editor droppings, in case a publish runs from a working

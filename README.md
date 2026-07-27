@@ -1,12 +1,14 @@
 # StyleRef nodes for ComfyUI
 
-<img src="https://raw.githubusercontent.com/StyleRef/styleref-comfyui/main/assets/workflow.webp" alt="One StyleRef style applied to seven different subjects" width="420" align="right">
-
 Define a creative style once on [StyleRef](https://styleref.io) — colors,
 lighting, mood, composition, guardrails — then load it as a node and reuse it
 across your workflows.
 
-Every frame on the right is the same style, a different subject.
+![One style, three unrelated subjects, rendered from a single StyleRef Load node](https://raw.githubusercontent.com/StyleRef/styleref-comfyui/main/assets/consistency-grid.webp)
+
+One **StyleRef Load** feeding three **Apply** nodes with three unrelated
+subjects — a rooftop at dusk, a record shop, a toy unicorn. The style holds;
+only the subject changes. That is the whole idea.
 
 The style is compiled server-side for whichever model you point it at, so the
 same style produces prompt text phrased appropriately for each one.
