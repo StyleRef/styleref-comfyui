@@ -1,6 +1,6 @@
 [project]
 name = "styleref-comfyui"
-version = "1.0.4"
+version = "1.0.5"
 description = "StyleRef nodes for ComfyUI — load a creative style once, reuse it across your workflows"
 authors = [{ name = "StyleRef", email = "hello@styleref.io" }]
 readme = "README.md"

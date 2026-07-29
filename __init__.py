@@ -46,7 +46,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 # progressive enhancement. Nothing here is required for the nodes to work.
 WEB_DIRECTORY = "./web"
 
-_FALLBACK_VERSION = "1.0.4"
+_FALLBACK_VERSION = "1.0.5"
 
 
 def _pack_version() -> str:

@@ -63,7 +63,7 @@
         "Node name for S&R": "StyleRefLoad"
       },
       "widgets_values": [
-        "72e1zdae-e2d54a18d090",
+        "azch4ptx-2ca7d3a07f37",
         "",
         "any",
         true,
@@ -178,7 +178,7 @@
         "Node name for S&R": "StyleRefApply"
       },
       "widgets_values": [
-        "A fully dressed teenager sitting on a rooftop ledge at dusk, dress in #8A9FB5 color with ropes, knees up, headphones on, looking out over a low-rise city as lights begin to switch on; laundry lines and a water tank frame the foreground.",
+        "A picnic blanket spread out across grass, covered with a half-eaten watermelon slice, a tipped bowl of cherries spilling across the stripes, a transistor radio, sunglasses, and a paperback splayed face-down. Seeds and rind scattered between them, juice soaked dark into the fabric.",
         "flux",
         "",
         false,
@@ -524,7 +524,7 @@
         "Node name for S&R": "StyleRefApply"
       },
       "widgets_values": [
-        "two friends flipping through crates of vinyl in a record shop, dressed",
+        "A woman in a robe and hair curlers sitting on a kitchen floor with her back against the cabinets, eating spaghetti straight from the pot. A wooden spoon on the tile beside her, an open fridge door casting into frame.",
         "flux",
         "",
         false,
@@ -870,7 +870,7 @@
         "Node name for S&R": "StyleRefApply"
       },
       "widgets_values": [
-        "A Unicorn Toy",
+        "A woman in a yellow raincoat and boots holding an open umbrella, standing on a bright green lawn under a garden sprinkler, cloudless sky above. A watering can and a pair of sandals on the grass beside her.",
         "flux",
         "",
         false,

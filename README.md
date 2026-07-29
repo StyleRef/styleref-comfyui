@@ -32,7 +32,7 @@ git clone https://github.com/StyleRef/styleref-comfyui
 Restart ComfyUI. Nothing to install: the pack declares no Python dependencies
 and imports on the standard library alone. The Reference Images node reaches
 for Pillow and numpy when it runs, and every ComfyUI install already ships
-those. Look for `[StyleRef] v1.0.4 — 5 nodes registered` in the server console
+those. Look for `[StyleRef] v1.0.5 — 5 nodes registered` in the server console
 at startup.
 
 **It does depend on styleref.io.** These nodes are a client, not a local
@@ -53,7 +53,7 @@ host outside the API. Nothing here spends credits.
 
 1. Add **StyleRef Load** and paste a slug from the
    [gallery](https://styleref.io/gallery) into `style_ref` (try
-   `72e1zdae-e2d54a18d090`, the Noir Low-Key Portrait style) — or click
+   `azch4ptx-2ca7d3a07f37`, the Raw Theatrical Cinematic style) — or click
    **Search styles…** to pick one.
 2. Add **StyleRef Apply**, connect `style`, type a subject, pick your target.
 3. Wire `positive` / `negative` into your CLIP Text Encode nodes.
@@ -115,8 +115,9 @@ loader stack. The three model files download on first run.
 
 The two sets load **different gallery styles on purpose.** How well a style
 demos is a property of the style *and* the model. FLUX is strongest at light
-and tonality, so its templates load a noir style — hard key, crushed blacks,
-monochrome. Z-Image reproduces painterly technique faithfully, so its
+and colour rather than brushwork, so its templates load a theatrical cinematic
+style — hard cast shadows, a saturated key, staged props. Z-Image reproduces
+painterly technique faithfully, so its
 templates load a Renaissance tempera style. Swap either for any slug from the
 [gallery](https://styleref.io/gallery); these are starting points, not
 limits.
@@ -145,7 +146,7 @@ worth trying:
 
 1. **`Flux guidance`** (3.5 in the templates, FLUX's default) is the blunt one.
    4–5 makes the style bite harder; past that the subject starts losing to it,
-   and a dark style can go to pure black.
+   colour goes poster-flat, and a dark style can go to pure black.
 2. **Narrow `sections` on StyleRef Apply** to the parts that define this style.
    For a period or painterly style that is usually
    `artistic_mediums,references,surface_material,colors` — the sections naming

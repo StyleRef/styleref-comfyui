@@ -165,10 +165,10 @@ MAX_NOTE = 340
 # and it is specifically weak at reproducing painterly technique; the usual
 # remedy in the ecosystem is a style LoRA, which is far too much apparatus for
 # a first-run demo. Rather than ship a demo that quietly under-delivers, the
-# FLUX set uses a style whose identity is *light and tonality* — hard key,
-# crushed blacks, monochrome. That is what FLUX is genuinely good at, and
-# monochrome high-contrast output is unmistakably styled: nobody has to wonder
-# whether the node did anything.
+# FLUX set uses a style whose identity is *light and colour* rather than
+# brushwork — high contrast, saturated theatrical key, documentary framing.
+# That is what FLUX is genuinely good at, and it lands hard enough that nobody
+# has to wonder whether the node did anything.
 #
 # Both are subject-agnostic (the consistency grid needs that) and both carry
 # inspiration images (the reference-images template needs that).
@@ -177,7 +177,7 @@ MAX_NOTE = 340
 # naturalistic photography style lands close to what a base model does
 # unprompted, and a typography-led graphic style asks the sampler for headline
 # text. Neither of these does either.
-FLUX_STYLE_REF = "72e1zdae-e2d54a18d090"    # Noir Low-Key Portrait
+FLUX_STYLE_REF = "azch4ptx-2ca7d3a07f37"    # Raw Theatrical Cinematic
 ZIMAGE_STYLE_REF = "sbdlwwly-66ae1a89efdc"  # Renaissance Mythic Classicism
 
 # Placeholder ref for the "your own style" templates. Refs are opaque ids now
@@ -189,12 +189,20 @@ OWN_STYLE_REF = "<your style id>"
 # interior, and an object with no figure at all — because the grid's whole
 # claim is that one style holds across unrelated subjects.
 #
-# Two of them say "dressed" outright. That is not prudishness: the Renaissance
-# style compiles an empty negative (it carries no guardrails), and Z-Image has
-# no negative channel to put one in, so a style steeped in classical painting
-# drifts to classical nudes unless the subject says otherwise. Positive
-# phrasing in the subject is the only lever either model leaves us.
-GRID_SUBJECTS = [
+# One list per model, for the same reason the style refs differ: what demos
+# well is a property of the model/style pair, not of the subject.
+#
+# Two of the Z-Image subjects say "dressed" outright. That is not prudishness:
+# the Renaissance style compiles an empty negative (it carries no guardrails),
+# and Z-Image has no negative channel to put one in, so a style steeped in
+# classical painting drifts to classical nudes unless the subject says
+# otherwise. Positive phrasing in the subject is the only lever that model
+# leaves us. FLUX needs none of that — Raw Theatrical Cinematic carries its own
+# guardrails and FLUX has a channel for them — so its subjects are chosen
+# instead for what the style is actually about: hard cast shadows, a saturated
+# key, narrative props and "staged chaos" (spilled cherries and juice in the
+# fabric, a fridge door throwing the only fill, a sprinkler on a flat lawn).
+ZIMAGE_GRID_SUBJECTS = [
     "A fully dressed teenager sitting on a rooftop ledge at dusk, dress in "
     "#8A9FB5 color with ropes, knees up, headphones on, looking out over a "
     "low-rise city as lights begin to switch on; laundry lines and a water "
@@ -203,9 +211,25 @@ GRID_SUBJECTS = [
     "A Unicorn Toy",
 ]
 
-# The single-subject templates all use the first grid subject, so a user who
-# opens two templates sees the same prompt render consistently.
-DEMO_SUBJECT = GRID_SUBJECTS[0]
+FLUX_GRID_SUBJECTS = [
+    "A picnic blanket spread out across grass, covered with a half-eaten "
+    "watermelon slice, a tipped bowl of cherries spilling across the stripes, "
+    "a transistor radio, sunglasses, and a paperback splayed face-down. Seeds "
+    "and rind scattered between them, juice soaked dark into the fabric.",
+    "A woman in a robe and hair curlers sitting on a kitchen floor with her "
+    "back against the cabinets, eating spaghetti straight from the pot. A "
+    "wooden spoon on the tile beside her, an open fridge door casting into "
+    "frame.",
+    "A woman in a yellow raincoat and boots holding an open umbrella, standing "
+    "on a bright green lawn under a garden sprinkler, cloudless sky above. A "
+    "watering can and a pair of sandals on the grass beside her.",
+]
+
+# The single-subject templates use their own set's first grid subject, so a
+# user who opens two templates for the same model sees the same prompt render
+# consistently.
+ZIMAGE_DEMO_SUBJECT = ZIMAGE_GRID_SUBJECTS[0]
+FLUX_DEMO_SUBJECT = FLUX_GRID_SUBJECTS[0]
 
 # Frontend model-download metadata: a missing checkpoint becomes a guided
 # download instead of a red error.
@@ -469,10 +493,10 @@ def _flux_tail(graph: Graph, apply_node: int, checkpoint: int, col: int) -> None
     # FLUX's own default. It briefly shipped at 5.0 here, to force a painterly
     # style that FLUX was never going to reproduce; with a style the model is
     # actually good at, that compensation stops helping and starts costing the
-    # subject. This style asks for crushed blacks and no fill, and guidance is
-    # a blunt "obey harder" dial — over-driven, the frame goes to pure black and
-    # the subject dissolves into it. Style adherence is the pairing's job, not
-    # this number's.
+    # subject. Guidance is a blunt "obey harder" dial, and this style already
+    # asks for a saturated key and hard shadows — over-driven, the colour goes
+    # poster-flat and the staged clutter collapses into contrast. Style
+    # adherence is the pairing's job, not this number's.
     guidance = graph.place("FluxGuidance", col, [3.5], title="Flux guidance")
     zero_out = graph.place("ConditioningZeroOut", col, [], title="FLUX has no negative")
     latent = graph.place("EmptySD3LatentImage", col, [1024, 1024, 1])
@@ -627,7 +651,7 @@ def workflow_zimage_01_quickstart() -> dict[str, Any]:
     )
     unet, clip, vae = _zimage_loaders(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 1, apply_widgets(ZIMAGE_DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _zimage_tail(g, apply_node, unet, clip, vae, col=2)
@@ -648,7 +672,7 @@ def workflow_zimage_02_consistency() -> dict[str, Any]:
     load = g.place("StyleRefLoad", 0, load_widgets(ZIMAGE_STYLE_REF))
     unet, clip, vae = _zimage_loaders(g)
 
-    subjects = GRID_SUBJECTS
+    subjects = ZIMAGE_GRID_SUBJECTS
     for index, subject in enumerate(subjects):
         apply_node = g.place(
             "StyleRefApply", 1, apply_widgets(subject, "diffusion"), title=f"Subject {index + 1}"
@@ -678,7 +702,7 @@ def workflow_zimage_03_your_own_style() -> dict[str, Any]:
     )
     unet, clip, vae = _zimage_loaders(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 1, apply_widgets(ZIMAGE_DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _zimage_tail(g, apply_node, unet, clip, vae, col=2)
@@ -708,7 +732,7 @@ def workflow_zimage_04_reference_images() -> dict[str, Any]:
     g.link(refs, 0, ref_preview, 0)
 
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 1, apply_widgets(ZIMAGE_DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _zimage_tail(g, apply_node, unet, clip, vae, col=2)
@@ -737,7 +761,7 @@ def workflow_01_quickstart() -> dict[str, Any]:
     )
     checkpoint = _flux_checkpoint(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
+        "StyleRefApply", 1, apply_widgets(FLUX_DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
     _flux_tail(g, apply_node, checkpoint, col=2)
@@ -764,7 +788,7 @@ def workflow_02_consistency() -> dict[str, Any]:
     load = g.place("StyleRefLoad", 0, load_widgets(FLUX_STYLE_REF))
     checkpoint = _flux_checkpoint(g)
 
-    subjects = GRID_SUBJECTS
+    subjects = FLUX_GRID_SUBJECTS
     for index, subject in enumerate(subjects):
         apply_node = g.place(
             "StyleRefApply", 1, apply_widgets(subject, "flux"), title=f"Subject {index + 1}"
@@ -797,7 +821,7 @@ def workflow_03_your_own_style() -> dict[str, Any]:
     )
     checkpoint = _flux_checkpoint(g)
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
+        "StyleRefApply", 1, apply_widgets(FLUX_DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
     _flux_tail(g, apply_node, checkpoint, col=2)
@@ -835,7 +859,7 @@ def workflow_04_reference_images() -> dict[str, Any]:
     g.link(refs, 0, ref_preview, 0)
 
     apply_node = g.place(
-        "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
+        "StyleRefApply", 1, apply_widgets(FLUX_DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
     _flux_tail(g, apply_node, checkpoint, col=2)
@@ -858,7 +882,7 @@ def workflow_05_facets() -> dict[str, Any]:
     _facet_board(g, load, col=1)
 
     apply_node = g.place(
-        "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "flux")
+        "StyleRefApply", 3, apply_widgets(FLUX_DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
     _flux_tail(g, apply_node, checkpoint, col=4)
@@ -881,7 +905,7 @@ def workflow_zimage_05_facets() -> dict[str, Any]:
     _facet_board(g, load, col=1)
 
     apply_node = g.place(
-        "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "diffusion")
+        "StyleRefApply", 3, apply_widgets(ZIMAGE_DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
     _zimage_tail(g, apply_node, unet, clip, vae, col=4)
