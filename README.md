@@ -121,12 +121,41 @@ templates load a Renaissance tempera style. Swap either for any slug from the
 [gallery](https://styleref.io/gallery); these are starting points, not
 limits.
 
+Every template is built to read at a glance on open: the on-canvas notes say
+what the template produces and where the model comes from, and the plumbing
+between Apply and the sampler (the text encoder, the zeroed conditioning, VAE
+Decode) ships **collapsed** — nothing in there is yours to edit. Expand any of
+them if you want to rewire.
+
 **Neither FLUX nor Z-Image takes a negative prompt.** Both are guidance
 distilled and run at CFG 1.0, where the negative branch is multiplied out
 entirely — so neither set carries a negative encoder, and the sampler's
-negative input gets a zeroed conditioning. StyleRef still compiles
-the negative and previews it on the canvas; fold anything you need from it into
+negative input gets a zeroed conditioning. StyleRef still compiles the negative
+and returns it on Apply's `negative` output; fold anything you need from it into
 `subject` on Apply as a positive phrase. Raising CFG does not bring it back.
+
+Apply prints the prompt it composed, and its token estimate, in its own node
+body after a queue — that is where to read what StyleRef actually sent the
+sampler.
+
+### Style not coming through strongly enough?
+
+FLUX has a confident house look and drifts back to it. Two dials, in the order
+worth trying:
+
+1. **`Flux guidance`** (3.5 in the templates, FLUX's default) is the blunt one.
+   4–5 makes the style bite harder; past that the subject starts losing to it,
+   and a dark style can go to pure black.
+2. **Narrow `sections` on StyleRef Apply** to the parts that define this style.
+   For a period or painterly style that is usually
+   `artistic_mediums,references,surface_material,colors` — the sections naming
+   the medium, the era and the finish. Left empty, every section is sent, and the
+   identity-carrying ones render last, so a long style can read as generic. For a
+   geometric or layout-led style keep `shape_language` and `spatial_hierarchy`
+   instead. Queue the Facets template to see what a style actually carries.
+
+Sampler defaults, for reference: FLUX 20 steps, Z-Image Turbo 8, both at CFG 1.0
+with euler/simple, seeds randomizing on every queue.
 
 ## Signing in
 
@@ -179,6 +208,9 @@ python scripts/build_workflows.py   # regenerate workflow templates
 
 The workflow templates are generated — edit
 [`scripts/build_workflows.py`](scripts/build_workflows.py), not the JSON.
+
+Shipping a change to users — a version bump, a Registry publish, updating the
+monorepo pointer — is [`RELEASING.md`](RELEASING.md).
 
 The nodes are a thin client over StyleRef's public
 [REST API v1](https://docs.styleref.io/for-ai-agents/rest-api/overview-and-authentication)

@@ -16,7 +16,17 @@ import os
 
 import pytest
 
-from scripts.build_workflows import FACET_SHOWCASE, INPUTS, MAX_TITLE, OUTPUTS, WORKFLOWS
+from scripts.build_workflows import (
+    COLLAPSED,
+    FACET_SHOWCASE,
+    INPUTS,
+    MAX_NOTE,
+    MAX_TITLE,
+    MIN_H,
+    OUTPUTS,
+    WORKFLOWS,
+    effective_size,
+)
 from styleref_nodes.facets import StyleRefFacets
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -142,10 +152,16 @@ def test_link_ids_are_unique_and_registered_on_both_ends(path):
 
 @pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
 def test_no_nodes_overlap_at_default_sizes(path):
-    """Overlapping nodes read as a broken template — layout is math,
-    not guesses, so this must hold for every template."""
+    """
+    Overlapping nodes read as a broken template — layout is math, not guesses, so
+    this must hold for every template.
+
+    Boxes come from `effective_size`, the generator's own answer, so a collapsed
+    node is measured as the title bar it actually draws rather than the size it
+    carries for when someone expands it.
+    """
     nodes = _load(path)["nodes"]
-    boxes = [(n["id"], *n["pos"], *n["size"]) for n in nodes]
+    boxes = [(n["id"], *n["pos"], *effective_size(n)) for n in nodes]
     for i, (id_a, ax, ay, aw, ah) in enumerate(boxes):
         for id_b, bx, by, bw, bh in boxes[i + 1 :]:
             separated = ax + aw <= bx or bx + bw <= ax or ay + ah <= by or by + bh <= ay
@@ -323,11 +339,62 @@ def test_consistency_template_shows_one_style_many_subjects():
     assert len(subjects) == 3, "the subjects must actually differ"
 
 
-def test_prompt_previews_exist_where_promised():
-    """Templates 01 and 05 make the compiled prompts visible."""
-    for name in ("01-quickstart.json", "05-facets.json"):
-        graph = _load(os.path.join(WORKFLOW_DIR, name))
-        assert any(n["type"] == "PreviewAny" for n in graph["nodes"]), name
+@pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
+def test_no_template_previews_the_compiled_prompts(path):
+    """
+    Apply prints the composed prompt and its token estimate in its own node body,
+    so a Preview Any on `positive`/`negative` is a second copy of something
+    already on screen — and in the consistency grid it was six of them. The only
+    Preview Any nodes left are the Facets sections, whose strings have nowhere
+    else to be read.
+    """
+    graph = _load(path)
+    apply_ids = {n["id"] for n in graph["nodes"] if n["type"] == "StyleRefApply"}
+    nodes = {n["id"]: n for n in graph["nodes"]}
+    for _lid, src, _ss, dst, _ds, _k in graph["links"]:
+        assert not (src in apply_ids and nodes[dst]["type"] == "PreviewAny"), (
+            "Apply's compiled prompt is already visible in the node body"
+        )
+
+
+@pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
+def test_notes_stay_short(path):
+    """
+    A note is a signpost, not a manual: what this template produces, and how to
+    get the model. Longer guidance belongs in the README, where it does not
+    dominate the canvas.
+    """
+    for node in _load(path)["nodes"]:
+        if node["type"] == "Note":
+            text = str(node["widgets_values"][0])
+            assert len(text) <= MAX_NOTE, f"note is {len(text)} chars: {text[:80]}…"
+
+
+@pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
+def test_plumbing_nodes_ship_collapsed(path):
+    """
+    The text encoder, the zero-out and VAE Decode carry nothing a user edits.
+    Shipped expanded they are tall empty boxes between Apply and the sampler.
+    """
+    for node in _load(path)["nodes"]:
+        if node["type"] in COLLAPSED:
+            assert node["flags"].get("collapsed") is True, node["type"]
+
+
+@pytest.mark.parametrize("path", FILES, ids=[_relpath(p) for p in FILES])
+def test_declared_heights_are_never_below_the_measured_minimum(path):
+    """
+    The frontend clamps a node up to its own minimum on load. A template that
+    declares less does not get a smaller node — it gets a node that grows on open
+    and covers whatever sits below it, which is exactly how the loaders came to
+    overlap the Load node.
+    """
+    for node in _load(path)["nodes"]:
+        minimum = MIN_H.get(node["type"])
+        assert minimum, f"{node['type']} has no measured height in MIN_H"
+        assert node["size"][1] >= minimum, (
+            f"{node['type']} declares {node['size'][1]}px, under its {minimum}px minimum"
+        )
 
 
 def test_consistency_template_makes_no_cross_tool_claim():

@@ -1,6 +1,6 @@
 {
-  "last_node_id": 21,
-  "last_link_id": 20,
+  "last_node_id": 19,
+  "last_link_id": 18,
   "nodes": [
     {
       "id": 1,
@@ -11,7 +11,7 @@
       ],
       "size": [
         320,
-        720
+        226
       ],
       "flags": {},
       "order": 0,
@@ -22,7 +22,7 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "Inside the style \u2014 the Facets node.\nApply gives you one prompt string. Facets gives you the style's sections one output at a time \u2014 24 of them, exactly the sections you see on the style board at styleref.io, plus the six custom items.\nSix are previewed here so you can read them. Every other output is on the node too; drag any of them into a text input.\nThey are plain STRINGs, so they go anywhere text goes: a second CLIP encoder for regional conditioning, an IPAdapter or ControlNet prompt, a LoRA trigger line, or your own nodes. That is the escape hatch \u2014 use the palette without taking the whole prompt.\nThe render alongside is the paved road (Apply), so you can compare the assembled prompt against the parts it was built from.\n\nZ-Image Turbo (S3-DiT). Three model files download on first use: the UNET (diffusion_models/), the Qwen text encoder (text_encoders/), and the VAE (vae/).\nSampler defaults are turbo: 8 steps, CFG 1.0, euler/simple.\nZ-Image takes no negative prompt. The model runs without classifier-free guidance, so there is no negative encoder on this canvas \u2014 the sampler's negative input gets a zeroed conditioning. StyleRef still compiles the negative and previews it; put anything you need from it into `subject` on Apply as a positive phrase (\"fully clothed\", \"no text or watermark\"). Raising CFG does not bring the negative back.\nStyle prompts use the `diffusion` target \u2014 Z-Image reads the same tag-weighted output SDXL/SD1.5 use."
+        "Inside a style: Facets emits each of its 24 sections as its own STRING.\nSix are previewed here; drag any output into any text input \u2014 a second encoder, an IPAdapter prompt, a LoRA trigger.\nApply and the sampler alongside render the whole assembled prompt.\nFirst queue downloads 3 files: UNET, Qwen text encoder, VAE."
       ],
       "title": "Facets on Z-Image"
     },
@@ -31,11 +31,11 @@
       "type": "StyleRefLoad",
       "pos": [
         40,
-        828
+        342
       ],
       "size": [
         320,
-        248
+        348
       ],
       "flags": {},
       "order": 1,
@@ -75,11 +75,11 @@
       "type": "UNETLoader",
       "pos": [
         40,
-        1124
+        746
       ],
       "size": [
         320,
-        140
+        108
       ],
       "flags": {},
       "order": 2,
@@ -90,7 +90,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            13
+            11
           ],
           "slot_index": 0
         }
@@ -116,11 +116,11 @@
       "type": "CLIPLoader",
       "pos": [
         40,
-        1312
+        910
       ],
       "size": [
         320,
-        168
+        140
       ],
       "flags": {},
       "order": 3,
@@ -131,7 +131,7 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            12
+            10
           ],
           "slot_index": 0
         }
@@ -158,11 +158,11 @@
       "type": "VAELoader",
       "pos": [
         40,
-        1528
+        1106
       ],
       "size": [
         320,
-        112
+        80
       ],
       "flags": {},
       "order": 4,
@@ -173,7 +173,7 @@
           "name": "VAE",
           "type": "VAE",
           "links": [
-            19
+            17
           ],
           "slot_index": 0
         }
@@ -202,7 +202,7 @@
       ],
       "size": [
         320,
-        636
+        624
       ],
       "flags": {},
       "order": 5,
@@ -387,7 +387,7 @@
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 6,
@@ -411,11 +411,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        192
+        268
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 7,
@@ -439,11 +439,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        324
+        476
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 8,
@@ -467,11 +467,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        456
+        684
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 9,
@@ -495,11 +495,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        588
+        892
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 10,
@@ -523,11 +523,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        720
+        1100
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 11,
@@ -555,7 +555,7 @@
       ],
       "size": [
         320,
-        424
+        380
       ],
       "flags": {},
       "order": 12,
@@ -572,17 +572,14 @@
           "name": "positive",
           "type": "STRING",
           "links": [
-            9,
-            11
+            9
           ],
           "slot_index": 0
         },
         {
           "name": "negative",
           "type": "STRING",
-          "links": [
-            10
-          ],
+          "links": [],
           "slot_index": 1
         },
         {
@@ -606,62 +603,6 @@
     },
     {
       "id": 14,
-      "type": "PreviewAny",
-      "pos": [
-        1180,
-        532
-      ],
-      "size": [
-        320,
-        84
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 9
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "title": "Compiled positive"
-    },
-    {
-      "id": 15,
-      "type": "PreviewAny",
-      "pos": [
-        1180,
-        664
-      ],
-      "size": [
-        320,
-        84
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 10
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "title": "Compiled negative"
-    },
-    {
-      "id": 16,
       "type": "CLIPTextEncode",
       "pos": [
         1560,
@@ -669,21 +610,23 @@
       ],
       "size": [
         320,
-        198
+        116
       ],
-      "flags": {},
-      "order": 15,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 12
+          "link": 10
         },
         {
           "name": "text",
           "type": "STRING",
-          "link": 11
+          "link": 9
         }
       ],
       "outputs": [
@@ -691,8 +634,8 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            14,
-            15
+            12,
+            13
           ],
           "slot_index": 0
         }
@@ -706,24 +649,26 @@
       "title": "Positive (from StyleRef)"
     },
     {
-      "id": 17,
+      "id": 15,
       "type": "ConditioningZeroOut",
       "pos": [
         1560,
-        306
+        156
       ],
       "size": [
         320,
-        84
+        48
       ],
-      "flags": {},
-      "order": 16,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 15
+          "link": 13
         }
       ],
       "outputs": [
@@ -731,7 +676,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            16
+            14
           ],
           "slot_index": 0
         }
@@ -743,18 +688,18 @@
       "title": "Z-Image has no negative"
     },
     {
-      "id": 18,
+      "id": 16,
       "type": "EmptySD3LatentImage",
       "pos": [
         1560,
-        438
+        252
       ],
       "size": [
         320,
-        168
+        144
       ],
       "flags": {},
-      "order": 17,
+      "order": 15,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -762,7 +707,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            17
+            15
           ],
           "slot_index": 0
         }
@@ -777,7 +722,7 @@
       ]
     },
     {
-      "id": 19,
+      "id": 17,
       "type": "KSampler",
       "pos": [
         1940,
@@ -785,31 +730,31 @@
       ],
       "size": [
         320,
-        352
+        312
       ],
       "flags": {},
-      "order": 18,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 13
+          "link": 11
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 14
+          "link": 12
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 16
+          "link": 14
         },
         {
           "name": "latent_image",
           "type": "LATENT",
-          "link": 17
+          "link": 15
         }
       ],
       "outputs": [
@@ -817,7 +762,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            18
+            16
           ],
           "slot_index": 0
         }
@@ -836,7 +781,7 @@
       ]
     },
     {
-      "id": 20,
+      "id": 18,
       "type": "VAEDecode",
       "pos": [
         2320,
@@ -844,21 +789,23 @@
       ],
       "size": [
         320,
-        108
+        72
       ],
-      "flags": {},
-      "order": 19,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 18
+          "link": 16
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 19
+          "link": 17
         }
       ],
       "outputs": [
@@ -866,7 +813,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            20
+            18
           ],
           "slot_index": 0
         }
@@ -877,24 +824,24 @@
       "widgets_values": []
     },
     {
-      "id": 21,
+      "id": 19,
       "type": "SaveImage",
       "pos": [
         2320,
-        216
+        156
       ],
       "size": [
         320,
-        112
+        84
       ],
       "flags": {},
-      "order": 20,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 20
+          "link": 18
         }
       ],
       "outputs": [],
@@ -976,47 +923,47 @@
       13,
       0,
       14,
-      0,
+      1,
       "STRING"
     ],
     [
       10,
-      13,
-      1,
-      15,
-      0,
-      "STRING"
-    ],
-    [
-      11,
-      13,
-      0,
-      16,
-      1,
-      "STRING"
-    ],
-    [
-      12,
       4,
       0,
-      16,
+      14,
       0,
       "CLIP"
     ],
     [
-      13,
+      11,
       3,
       0,
-      19,
+      17,
       0,
       "MODEL"
     ],
     [
+      12,
       14,
-      16,
       0,
-      19,
+      17,
       1,
+      "CONDITIONING"
+    ],
+    [
+      13,
+      14,
+      0,
+      15,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      14,
+      15,
+      0,
+      17,
+      2,
       "CONDITIONING"
     ],
     [
@@ -1024,46 +971,30 @@
       16,
       0,
       17,
-      0,
-      "CONDITIONING"
+      3,
+      "LATENT"
     ],
     [
       16,
       17,
       0,
-      19,
-      2,
-      "CONDITIONING"
+      18,
+      0,
+      "LATENT"
     ],
     [
       17,
-      18,
-      0,
-      19,
-      3,
-      "LATENT"
-    ],
-    [
-      18,
-      19,
-      0,
-      20,
-      0,
-      "LATENT"
-    ],
-    [
-      19,
       5,
       0,
-      20,
+      18,
       1,
       "VAE"
     ],
     [
-      20,
-      20,
+      18,
+      18,
       0,
-      21,
+      19,
       0,
       "IMAGE"
     ]

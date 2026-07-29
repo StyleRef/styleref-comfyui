@@ -1,6 +1,6 @@
 {
-  "last_node_id": 16,
-  "last_link_id": 15,
+  "last_node_id": 14,
+  "last_link_id": 13,
   "nodes": [
     {
       "id": 1,
@@ -11,7 +11,7 @@
       ],
       "size": [
         320,
-        576
+        226
       ],
       "flags": {},
       "order": 0,
@@ -22,7 +22,7 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "Z-Image \u2014 style prompt and reference images together.\nStyleRef Apply drives the Z-Image sampler with the style's prompt; StyleRef Reference Images pulls the style's inspiration images out as a batch, previewed alongside. The prompt says how the style reads; the images show how it looks \u2014 wire the images into IPAdapter or a reference-only ControlNet to combine both.\nUse a gallery style that has inspiration images.\n\nZ-Image Turbo (S3-DiT). Three model files download on first use: the UNET (diffusion_models/), the Qwen text encoder (text_encoders/), and the VAE (vae/).\nSampler defaults are turbo: 8 steps, CFG 1.0, euler/simple.\nZ-Image takes no negative prompt. The model runs without classifier-free guidance, so there is no negative encoder on this canvas \u2014 the sampler's negative input gets a zeroed conditioning. StyleRef still compiles the negative and previews it; put anything you need from it into `subject` on Apply as a positive phrase (\"fully clothed\", \"no text or watermark\"). Raising CFG does not bring the negative back.\nStyle prompts use the `diffusion` target \u2014 Z-Image reads the same tag-weighted output SDXL/SD1.5 use."
+        "The style's prompt and its own inspiration images, together.\nApply drives the sampler; Reference Images pulls the images out as a batch \u2014 preview them, or wire them into IPAdapter or ControlNet.\nNeeds a gallery style that has inspiration images.\nFirst queue downloads 3 files: UNET, Qwen text encoder, VAE."
       ],
       "title": "Z-Image + references"
     },
@@ -31,11 +31,11 @@
       "type": "StyleRefLoad",
       "pos": [
         40,
-        684
+        342
       ],
       "size": [
         320,
-        248
+        348
       ],
       "flags": {},
       "order": 1,
@@ -75,11 +75,11 @@
       "type": "UNETLoader",
       "pos": [
         40,
-        980
+        746
       ],
       "size": [
         320,
-        140
+        108
       ],
       "flags": {},
       "order": 2,
@@ -90,7 +90,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            8
+            6
           ],
           "slot_index": 0
         }
@@ -116,11 +116,11 @@
       "type": "CLIPLoader",
       "pos": [
         40,
-        1168
+        910
       ],
       "size": [
         320,
-        168
+        140
       ],
       "flags": {},
       "order": 3,
@@ -131,7 +131,7 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            7
+            5
           ],
           "slot_index": 0
         }
@@ -158,11 +158,11 @@
       "type": "VAELoader",
       "pos": [
         40,
-        1384
+        1106
       ],
       "size": [
         320,
-        112
+        80
       ],
       "flags": {},
       "order": 4,
@@ -173,7 +173,7 @@
           "name": "VAE",
           "type": "VAE",
           "links": [
-            14
+            12
           ],
           "slot_index": 0
         }
@@ -202,7 +202,7 @@
       ],
       "size": [
         320,
-        136
+        128
       ],
       "flags": {},
       "order": 5,
@@ -247,7 +247,7 @@
       ],
       "size": [
         320,
-        84
+        48
       ],
       "flags": {},
       "order": 6,
@@ -271,11 +271,11 @@
       "type": "StyleRefApply",
       "pos": [
         420,
-        376
+        348
       ],
       "size": [
         320,
-        424
+        380
       ],
       "flags": {},
       "order": 7,
@@ -292,17 +292,14 @@
           "name": "positive",
           "type": "STRING",
           "links": [
-            4,
-            6
+            4
           ],
           "slot_index": 0
         },
         {
           "name": "negative",
           "type": "STRING",
-          "links": [
-            5
-          ],
+          "links": [],
           "slot_index": 1
         },
         {
@@ -326,62 +323,6 @@
     },
     {
       "id": 9,
-      "type": "PreviewAny",
-      "pos": [
-        420,
-        848
-      ],
-      "size": [
-        320,
-        84
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 4
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "title": "Compiled positive"
-    },
-    {
-      "id": 10,
-      "type": "PreviewAny",
-      "pos": [
-        420,
-        980
-      ],
-      "size": [
-        320,
-        84
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 5
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "title": "Compiled negative"
-    },
-    {
-      "id": 11,
       "type": "CLIPTextEncode",
       "pos": [
         800,
@@ -389,21 +330,23 @@
       ],
       "size": [
         320,
-        198
+        116
       ],
-      "flags": {},
-      "order": 10,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 7
+          "link": 5
         },
         {
           "name": "text",
           "type": "STRING",
-          "link": 6
+          "link": 4
         }
       ],
       "outputs": [
@@ -411,8 +354,8 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            9,
-            10
+            7,
+            8
           ],
           "slot_index": 0
         }
@@ -426,24 +369,26 @@
       "title": "Positive (from StyleRef)"
     },
     {
-      "id": 12,
+      "id": 10,
       "type": "ConditioningZeroOut",
       "pos": [
         800,
-        306
+        156
       ],
       "size": [
         320,
-        84
+        48
       ],
-      "flags": {},
-      "order": 11,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 10
+          "link": 8
         }
       ],
       "outputs": [
@@ -451,7 +396,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            11
+            9
           ],
           "slot_index": 0
         }
@@ -463,18 +408,18 @@
       "title": "Z-Image has no negative"
     },
     {
-      "id": 13,
+      "id": 11,
       "type": "EmptySD3LatentImage",
       "pos": [
         800,
-        438
+        252
       ],
       "size": [
         320,
-        168
+        144
       ],
       "flags": {},
-      "order": 12,
+      "order": 10,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -482,7 +427,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            12
+            10
           ],
           "slot_index": 0
         }
@@ -497,7 +442,7 @@
       ]
     },
     {
-      "id": 14,
+      "id": 12,
       "type": "KSampler",
       "pos": [
         1180,
@@ -505,31 +450,31 @@
       ],
       "size": [
         320,
-        352
+        312
       ],
       "flags": {},
-      "order": 13,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 8
+          "link": 6
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 9
+          "link": 7
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 11
+          "link": 9
         },
         {
           "name": "latent_image",
           "type": "LATENT",
-          "link": 12
+          "link": 10
         }
       ],
       "outputs": [
@@ -537,7 +482,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            13
+            11
           ],
           "slot_index": 0
         }
@@ -556,7 +501,7 @@
       ]
     },
     {
-      "id": 15,
+      "id": 13,
       "type": "VAEDecode",
       "pos": [
         1560,
@@ -564,21 +509,23 @@
       ],
       "size": [
         320,
-        108
+        72
       ],
-      "flags": {},
-      "order": 14,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 13
+          "link": 11
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 14
+          "link": 12
         }
       ],
       "outputs": [
@@ -586,7 +533,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            15
+            13
           ],
           "slot_index": 0
         }
@@ -597,24 +544,24 @@
       "widgets_values": []
     },
     {
-      "id": 16,
+      "id": 14,
       "type": "SaveImage",
       "pos": [
         1560,
-        216
+        156
       ],
       "size": [
         320,
-        112
+        84
       ],
       "flags": {},
-      "order": 15,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 15
+          "link": 13
         }
       ],
       "outputs": [],
@@ -656,47 +603,47 @@
       8,
       0,
       9,
-      0,
+      1,
       "STRING"
     ],
     [
       5,
-      8,
-      1,
-      10,
-      0,
-      "STRING"
-    ],
-    [
-      6,
-      8,
-      0,
-      11,
-      1,
-      "STRING"
-    ],
-    [
-      7,
       4,
       0,
-      11,
+      9,
       0,
       "CLIP"
     ],
     [
-      8,
+      6,
       3,
       0,
-      14,
+      12,
       0,
       "MODEL"
     ],
     [
+      7,
       9,
-      11,
       0,
-      14,
+      12,
       1,
+      "CONDITIONING"
+    ],
+    [
+      8,
+      9,
+      0,
+      10,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      9,
+      10,
+      0,
+      12,
+      2,
       "CONDITIONING"
     ],
     [
@@ -704,46 +651,30 @@
       11,
       0,
       12,
-      0,
-      "CONDITIONING"
+      3,
+      "LATENT"
     ],
     [
       11,
       12,
       0,
-      14,
-      2,
-      "CONDITIONING"
+      13,
+      0,
+      "LATENT"
     ],
     [
       12,
-      13,
-      0,
-      14,
-      3,
-      "LATENT"
-    ],
-    [
-      13,
-      14,
-      0,
-      15,
-      0,
-      "LATENT"
-    ],
-    [
-      14,
       5,
       0,
-      15,
+      13,
       1,
       "VAE"
     ],
     [
-      15,
-      15,
+      13,
+      13,
       0,
-      16,
+      14,
       0,
       "IMAGE"
     ]

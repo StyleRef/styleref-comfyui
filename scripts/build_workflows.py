@@ -7,15 +7,16 @@ link ids, and slot indices across all of them — the kind of bookkeeping that i
 silently wrong until someone drags the file onto a canvas. This builds them from
 a description instead, so the ids are correct by construction.
 
-Layout policy: node positions are never guessed. Every node's height
-is estimated from its widget count, and nodes stack per column with a fixed
-vertical gap — so no template can ship with overlapping nodes at default sizes.
-A test asserts that invariant on the committed files.
+Layout policy: node positions are never guessed. Every node's height is the
+*measured* minimum for its type (see `MIN_H`), and nodes stack per column with a
+fixed vertical gap — so no template can ship with overlapping nodes. A test
+asserts that invariant on the committed files.
 
 Instruction policy: user-facing instructions live in visible core
-`Note` nodes on the canvas. `extra.styleref.notes` carries only a one-line
-provenance string — ComfyUI never renders it, so it must not carry anything a
-user needs to read.
+`Note` nodes on the canvas, and they stay **short** — a note is a signpost, not
+a manual. Anything longer belongs in the README or docs.styleref.io.
+`extra.styleref.notes` carries only a one-line provenance string — ComfyUI never
+renders it, so it must not carry anything a user needs to read.
 
 Run after changing a node's inputs or outputs:
 
@@ -94,22 +95,65 @@ INPUTS = {
 # ── layout constants ─────────────────────────────────────────────────────────
 
 NODE_WIDTH = 320
-HEADER_H = 60          # title bar
-SLOT_H = 24            # one input/output slot row
-WIDGET_ROW_H = 28      # one single-line widget
-MULTILINE_H = 90       # one multiline text widget
-V_GAP = 48             # vertical gap between stacked nodes
+V_GAP = 56             # vertical gap between stacked nodes
 COL_W = 380            # column pitch; > NODE_WIDTH so columns never touch
+COLLAPSED_H = 40       # a collapsed node renders as a title bar only
 
-# Widgets that render multiline per node type (by widget index).
-MULTILINE_WIDGETS = {
-    "StyleRefApply": {0, 2},   # subject, extra_negative
-    "CLIPTextEncode": {0},
-    "Note": {0},
+# Minimum on-canvas height per node type, **measured** in the ComfyUI frontend
+# (1.45.x) by declaring each node deliberately too small and reading back the
+# size the frontend clamped it to.
+#
+# This table replaced an estimate built from widget counts, which is worth
+# knowing about because of how it failed. The frontend clamps a node *up* to its
+# own minimum on load, so under-estimating a height does not produce a small
+# node — it produces a node that grows on open and swallows whatever the layout
+# parked below it. StyleRefLoad (estimated 248, actually 348) is why the loader
+# and the Load node overlapped in every template.
+#
+# Re-measure after adding or removing a widget on a StyleRef node.
+MIN_H = {
+    "CheckpointLoaderSimple": 128,
+    "UNETLoader": 108,
+    "CLIPLoader": 140,
+    "VAELoader": 80,
+    "CLIPTextEncode": 116,
+    "ConditioningZeroOut": 48,
+    "FluxGuidance": 80,
+    "EmptySD3LatentImage": 144,
+    "EmptyLatentImage": 144,
+    "KSampler": 312,
+    "VAEDecode": 72,
+    "SaveImage": 84,
+    "PreviewImage": 48,
+    "PreviewAny": 152,
+    "LoadImage": 128,
+    "Note": 92,
+    "StyleRefLoad": 348,
+    "StyleRefApply": 380,
+    "StyleRefFacets": 624,
+    "StyleRefReferenceImages": 128,
+    "StyleRefLogin": 156,
 }
+
+# Node types shipped collapsed. Each is plumbing the user never edits: the text
+# encoder is driven by a link (its own text widget is not even used), the
+# zero-out has no widgets at all, and VAE Decode is a two-wire junction. Left
+# expanded they are three tall boxes of nothing between Apply and the sampler.
+#
+# The layout reserves only COLLAPSED_H for these, so expanding one on the canvas
+# can overlap the node beneath it — the right trade for a canvas that reads
+# clearly on open, which is the state every user starts in.
+COLLAPSED = {"CLIPTextEncode", "ConditioningZeroOut", "VAEDecode"}
 
 # Node titles longer than this truncate in both frontends.
 MAX_TITLE = 28
+
+# Hard cap on a Note node's text. Notes had grown into essays — model setup, a
+# no-negative explanation, a guidance-tuning tip — which made the brown box the
+# largest thing on the canvas and buried the one or two lines a first-time user
+# actually needs. A note now says what the template produces and how to get the
+# model; everything else lives in the README and docs.styleref.io.
+MAX_NOTE = 340
 
 # The gallery style each set loads. Deliberately different per model, because
 # "which style demos well" is a property of the pair, not of the style.
@@ -221,17 +265,28 @@ MODEL_ZIMAGE_VAE = {
 MODELS_ZIMAGE = [MODEL_ZIMAGE_UNET, MODEL_ZIMAGE_CLIP, MODEL_ZIMAGE_VAE]
 
 
-def node_height(node_type: str, widgets: list[Any]) -> int:
+def node_height(node_type: str) -> int:
     """
-    Estimated on-canvas height: header + one row per input/output
-    slot + one row per widget. The slot term matters for wide-output nodes —
-    Facets alone has dozens of outputs.
+    The height a node actually occupies: its measured minimum. Anything smaller
+    is overwritten by the frontend on load; anything larger is empty space.
     """
-    slots = max(len(INPUTS.get(node_type, [])), len(OUTPUTS.get(node_type, [])))
-    multiline = MULTILINE_WIDGETS.get(node_type, set())
-    rows = sum(1 for i in range(len(widgets)) if i not in multiline)
-    tall = sum(1 for i in range(len(widgets)) if i in multiline)
-    return HEADER_H + slots * SLOT_H + rows * WIDGET_ROW_H + tall * MULTILINE_H
+    if node_type not in MIN_H:
+        raise KeyError(f"no measured height for {node_type} — add it to MIN_H")
+    return MIN_H[node_type]
+
+
+def effective_size(node: dict[str, Any]) -> tuple[int, int]:
+    """
+    The box a node occupies on canvas as opened, which is what "do these two
+    nodes overlap" has to be asked about. A collapsed node draws as a title bar
+    regardless of the `size` it carries for when it is expanded.
+
+    Shared with the layout test so both answer the question the same way.
+    """
+    if node.get("flags", {}).get("collapsed"):
+        return NODE_WIDTH, COLLAPSED_H
+    width, height = node["size"]
+    return width, height
 
 
 class Graph:
@@ -263,10 +318,13 @@ class Graph:
             raise ValueError(f"title longer than {MAX_TITLE} chars truncates: {title!r}")
 
         widgets = widgets or []
-        h = height if height is not None else node_height(node_type, widgets)
+        h = height if height is not None else node_height(node_type)
+        collapsed = node_type in COLLAPSED
         x = 40 + col * COL_W
         y = self._cursor.get(col, 60)
-        self._cursor[col] = y + h + V_GAP
+        # Collapsed nodes only ever draw a title bar, so that is all the column
+        # spends on them.
+        self._cursor[col] = y + (COLLAPSED_H if collapsed else h) + V_GAP
 
         self._node_id += 1
         node: dict[str, Any] = {
@@ -274,7 +332,7 @@ class Graph:
             "type": node_type,
             "pos": [x, y],
             "size": [NODE_WIDTH, h],
-            "flags": {},
+            "flags": {"collapsed": True} if collapsed else {},
             "order": len(self.nodes),
             "mode": 0,
             "inputs": [
@@ -301,10 +359,23 @@ class Graph:
         self.nodes.append(node)
         return self._node_id
 
+    # A note wraps at roughly this many characters at NODE_WIDTH.
+    NOTE_WRAP = 46
+
     def note(self, col: int, text: str, title: str = "Read me") -> int:
-        """A visible core Note node — the instruction channel."""
-        # Height scales with the text so long notes don't clip at default size.
-        h = HEADER_H + 30 + 18 * (text.count("\n") + len(text) // 55)
+        """
+        A visible core Note node — the instruction channel, and deliberately a
+        small one. `MAX_NOTE` caps the text; the height is sized to the wrapped
+        line count so the note is exactly as tall as it needs to be.
+        """
+        if len(text) > MAX_NOTE:
+            raise ValueError(
+                f"note is {len(text)} chars, over the {MAX_NOTE}-char cap — say what "
+                f"this template does and how to get a model, and put the rest in "
+                f"the README:\n{text}"
+            )
+        lines = sum(max(1, -(-len(line) // self.NOTE_WRAP)) for line in text.split("\n"))
+        h = max(MIN_H["Note"], 46 + 20 * lines)
         return self.place("Note", col, [text], title=title, height=h)
 
     def link(self, src: int, src_slot: int, dst: int, dst_slot: int) -> None:
@@ -445,16 +516,12 @@ def _facet_board(graph: Graph, load: int, col: int) -> int:
     return facets
 
 
-def _preview(graph: Graph, apply_node: int, col: int, suffix: str = "") -> None:
-    """
-    Compiled prompts made visible, in every template: Preview Any on Apply's
-    positive and negative kills the "empty text box on the encoder looks
-    broken" perception and teaches what StyleRef actually produces.
-    """
-    pos = graph.place("PreviewAny", col, [], title=f"Compiled positive{suffix}")
-    neg = graph.place("PreviewAny", col, [], title=f"Compiled negative{suffix}")
-    graph.link(apply_node, 0, pos, 0)
-    graph.link(apply_node, 1, neg, 0)
+# No template attaches Preview Any nodes to Apply's compiled prompts. They were
+# there to prove StyleRef produced something, but Apply prints the composed
+# prompt and its token estimate in its own node body (`ui.text`) after a queue —
+# so the previews duplicated that, and in the consistency grid they duplicated it
+# six times, two tall boxes per subject. Preview Any survives only in the Facets
+# templates, where the strings have nowhere else to be read.
 
 
 def zimage_sampler_widgets() -> list[Any]:
@@ -530,58 +597,19 @@ def _zimage_tail(
     graph.link(decode, 0, save, 0)
 
 
+# One line each on where the model comes from — the only setup fact a note has
+# to carry, because it is the only one that stops a first queue from working.
+# Sampler defaults, the no-negative story and the style-strength dials are in the
+# README (github.com/StyleRef/styleref-comfyui) and docs.styleref.io.
 _ZIMAGE_SETUP_NOTE = (
-    "Z-Image Turbo (S3-DiT). Three model files download on first use: the UNET "
-    "(diffusion_models/), the Qwen text encoder (text_encoders/), and the VAE "
-    "(vae/).\n"
-    "Sampler defaults are turbo: 8 steps, CFG 1.0, euler/simple.\n"
-    "Z-Image takes no negative prompt. The model runs without classifier-free "
-    "guidance, so there is no negative encoder on this canvas — the sampler's "
-    "negative input gets a zeroed conditioning. StyleRef still compiles the "
-    "negative and previews it; put anything you need from it into `subject` on "
-    "Apply as a positive phrase (\"fully clothed\", \"no text or watermark\"). "
-    "Raising CFG does not bring the negative back.\n"
-    "Style prompts use the `diffusion` target — Z-Image reads the same "
-    "tag-weighted output SDXL/SD1.5 use."
+    "First queue downloads 3 files: UNET, Qwen text encoder, VAE."
 )
-
-
-_FLUX_STYLE_TIP = (
-    "Style not coming through strongly enough?\n"
-    "FLUX has a confident house look and will drift back to it. Two dials, in "
-    "the order worth trying:\n"
-    "1. `Flux guidance` (3.5 here, FLUX's default) is the blunt dial. 4–5 makes "
-    "the style bite harder; past that the subject starts losing to it, and a "
-    "dark style can go to pure black.\n"
-    "2. Narrow `sections` on StyleRef Apply to the parts that define this "
-    "style. For a period or painterly style that is usually "
-    "`artistic_mediums,references,surface_material,colors` — the sections "
-    "naming the medium, the era and the finish. Leaving it empty sends every "
-    "section, and the identity-carrying ones render last, so a long style can "
-    "read as generic.\n"
-    "Which sections matter depends on the style: for a geometric or layout-led "
-    "style keep `shape_language` and `spatial_hierarchy` instead. Queue the "
-    "Facets template to see what a style actually carries."
-)
-
 
 _FLUX_SETUP_NOTE = (
-    "FLUX.1 dev (fp8 all-in-one). The checkpoint downloads on first use "
-    "into checkpoints/ — one ~16 GB file containing the UNET, the T5 text "
-    "encoder and the VAE.\n"
-    "Sampler defaults: 20 steps, CFG 1.0, euler/simple. Prompt strength is "
-    "the FluxGuidance node (3.5), not CFG.\n"
-    "FLUX takes no negative prompt. It is guidance distilled and runs at "
-    "CFG 1.0, so there is no negative encoder on this canvas — the sampler's "
-    "negative input gets a zeroed conditioning. StyleRef still compiles the "
-    "negative and previews it; put anything you need from it into `subject` "
-    "on Apply as a positive phrase (\"fully clothed\", \"no text or "
-    "watermark\"). Raising CFG does not bring the negative back.\n"
-    "Style prompts use the `flux` target — FLUX reads prose with T5, so the "
-    "whole style fits instead of being truncated at ~77 tokens the way an "
-    "SDXL CLIP encoder would.\n\n"
-    + _FLUX_STYLE_TIP
+    "First queue downloads FLUX.1 dev fp8 (~16 GB) to checkpoints/."
 )
+
+_MORE = "Sampler tips + stronger styles: see the README."
 
 
 def workflow_zimage_01_quickstart() -> dict[str, Any]:
@@ -589,10 +617,9 @@ def workflow_zimage_01_quickstart() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Z-Image quickstart — no account needed.\n"
-        "1. Queue — the three Z-Image files download on first run.\n"
-        "2. Change `subject` on StyleRef Apply and queue again (seeds randomize).\n"
-        "Swap `style_ref` on StyleRef Load for any gallery slug.\n\n" + _ZIMAGE_SETUP_NOTE,
+        "One gallery style, one image, on Z-Image Turbo. No account needed.\n"
+        "Queue it. Then edit `subject` on Apply — or swap `style_ref` on Load "
+        "for any gallery slug — and queue again.\n" + _ZIMAGE_SETUP_NOTE,
         title="Z-Image quickstart",
     )
     load = g.place(
@@ -603,7 +630,6 @@ def workflow_zimage_01_quickstart() -> dict[str, Any]:
         "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 1)
     _zimage_tail(g, apply_node, unet, clip, vae, col=2)
 
     return g.to_json(models=MODELS_ZIMAGE)
@@ -614,10 +640,9 @@ def workflow_zimage_02_consistency() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Z-Image consistency grid — no account needed.\n"
-        "One style feeds three Apply nodes with three subjects; each renders "
-        "through its own Z-Image sampler. Queue once and compare: one style, "
-        "many subjects, a coherent set within this model.\n\n" + _ZIMAGE_SETUP_NOTE,
+        "One style, three subjects, three Z-Image samplers. No account needed.\n"
+        "Queue once and compare the set. Edit any subject, or swap the style on "
+        "Load, and queue again.\n" + _ZIMAGE_SETUP_NOTE,
         title="Z-Image consistency",
     )
     load = g.place("StyleRefLoad", 0, load_widgets(ZIMAGE_STYLE_REF))
@@ -629,7 +654,6 @@ def workflow_zimage_02_consistency() -> dict[str, Any]:
             "StyleRefApply", 1, apply_widgets(subject, "diffusion"), title=f"Subject {index + 1}"
         )
         g.link(load, 0, apply_node, 0)
-        _preview(g, apply_node, 1, suffix=f" {index + 1}")
         _zimage_tail(g, apply_node, unet, clip, vae, col=2)
 
     return g.to_json(models=MODELS_ZIMAGE)
@@ -640,13 +664,11 @@ def workflow_zimage_03_your_own_style() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Use your own style on Z-Image.\n"
-        "Extract a style from any image at https://styleref.io, then load it "
-        "here by its share slug or id.\n"
-        "1. Queue the StyleRef Login node alone first (use its Sign in button).\n"
-        "2. Put your style's id in `style_ref` on StyleRef Load, or pick it\n"
-        "   with the Search styles… button.\n"
-        "3. Queue.\n\n" + _ZIMAGE_SETUP_NOTE,
+        "Your own style on Z-Image. Extract one from any image at styleref.io.\n"
+        "1. Sign in with the Login node's button.\n"
+        "2. Put your style's id in `style_ref` on Load, or pick it with "
+        "Search styles….\n"
+        "3. Queue.\n" + _ZIMAGE_SETUP_NOTE,
         title="Z-Image — your style",
     )
     login = g.place("StyleRefLogin", 0, [], title="Login — check status")
@@ -659,7 +681,6 @@ def workflow_zimage_03_your_own_style() -> dict[str, Any]:
         "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 1)
     _zimage_tail(g, apply_node, unet, clip, vae, col=2)
 
     return g.to_json(models=MODELS_ZIMAGE)
@@ -670,13 +691,10 @@ def workflow_zimage_04_reference_images() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Z-Image — style prompt and reference images together.\n"
-        "StyleRef Apply drives the Z-Image sampler with the style's prompt; "
-        "StyleRef Reference Images pulls the style's inspiration images out as "
-        "a batch, previewed alongside. The prompt says how the style reads; the "
-        "images show how it looks — wire the images into IPAdapter or a "
-        "reference-only ControlNet to combine both.\n"
-        "Use a gallery style that has inspiration images.\n\n" + _ZIMAGE_SETUP_NOTE,
+        "The style's prompt and its own inspiration images, together.\n"
+        "Apply drives the sampler; Reference Images pulls the images out as a "
+        "batch — preview them, or wire them into IPAdapter or ControlNet.\n"
+        "Needs a gallery style that has inspiration images.\n" + _ZIMAGE_SETUP_NOTE,
         title="Z-Image + references",
     )
     load = g.place(
@@ -693,7 +711,6 @@ def workflow_zimage_04_reference_images() -> dict[str, Any]:
         "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 1)
     _zimage_tail(g, apply_node, unet, clip, vae, col=2)
 
     return g.to_json(models=MODELS_ZIMAGE)
@@ -704,13 +721,12 @@ def workflow_01_quickstart() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Quickstart — no account needed.\n"
-        "1. Queue — the FLUX checkpoint downloads on first run.\n"
-        "2. Seeds randomize, so every queue is a fresh image.\n"
-        "3. Change `subject` on StyleRef Apply and queue again.\n"
-        "Swap `style_ref` on StyleRef Load for any slug from "
-        "https://styleref.io/gallery — or use the Search styles… button.\n\n"
-        + _FLUX_SETUP_NOTE,
+        "One gallery style, one image, on FLUX.1 dev. No account needed.\n"
+        "Queue it. Then edit `subject` on Apply — or swap `style_ref` on Load "
+        "for any gallery slug — and queue again.\n"
+        + _FLUX_SETUP_NOTE
+        + "\n"
+        + _MORE,
         title="Quickstart",
     )
     load = g.place(
@@ -723,7 +739,6 @@ def workflow_01_quickstart() -> dict[str, Any]:
     apply_node = g.place(
         "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
     )
-    _preview(g, apply_node, 1)
     g.link(load, 0, apply_node, 0)
     _flux_tail(g, apply_node, checkpoint, col=2)
 
@@ -741,11 +756,9 @@ def workflow_02_consistency() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Consistency grid — no account needed.\n"
-        "One style feeds three Apply nodes with three different subjects; each "
-        "renders through its own sampler. Queue once and compare: one style, "
-        "many subjects, a coherent set within this model.\n"
-        "Change any subject, or swap the style on StyleRef Load, and queue again.",
+        "One style, three subjects, three FLUX samplers. No account needed.\n"
+        "Queue once and compare the set. Edit any subject, or swap the style on "
+        "Load, and queue again.\n" + _FLUX_SETUP_NOTE,
         title="Consistency grid",
     )
     load = g.place("StyleRefLoad", 0, load_widgets(FLUX_STYLE_REF))
@@ -757,7 +770,6 @@ def workflow_02_consistency() -> dict[str, Any]:
             "StyleRefApply", 1, apply_widgets(subject, "flux"), title=f"Subject {index + 1}"
         )
         g.link(load, 0, apply_node, 0)
-        _preview(g, apply_node, 1, suffix=f" {index + 1}")
         _flux_tail(g, apply_node, checkpoint, col=2)
 
     return g.to_json(models=[MODEL_FLUX])
@@ -768,15 +780,11 @@ def workflow_03_your_own_style() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Use your own style.\n"
-        "Extract a style from any image at https://styleref.io — it appears in "
-        "your library — then load it here by its share slug or id.\n"
-        "1. Queue the StyleRef Login node alone first (Queue runs every node, "
-        "so an empty workflow is the clean way). If status says signed out, "
-        "set action to `sign in` and queue again.\n"
-        "2. Put your style's id in `style_ref` on StyleRef Load, or pick it\n"
-        "   with the Search styles… button.\n"
-        "3. Queue.\n\n" + _FLUX_SETUP_NOTE,
+        "Your own style on FLUX. Extract one from any image at styleref.io.\n"
+        "1. Sign in with the Login node's button.\n"
+        "2. Put your style's id in `style_ref` on Load, or pick it with "
+        "Search styles….\n"
+        "3. Queue.\n" + _FLUX_SETUP_NOTE,
         title="Your own style",
     )
     login = g.place("StyleRefLogin", 0, [], title="Login — check status")
@@ -792,25 +800,16 @@ def workflow_03_your_own_style() -> dict[str, Any]:
         "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 1)
     _flux_tail(g, apply_node, checkpoint, col=2)
 
     return g.to_json(models=[MODEL_FLUX])
 
 
 _FACETS_NOTE = (
-    "Inside the style — the Facets node.\n"
-    "Apply gives you one prompt string. Facets gives you the style's sections "
-    "one output at a time — 24 of them, exactly the sections you see on the "
-    "style board at styleref.io, plus the six custom items.\n"
-    "Six are previewed here so you can read them. Every other output is on the "
-    "node too; drag any of them into a text input.\n"
-    "They are plain STRINGs, so they go anywhere text goes: a second CLIP "
-    "encoder for regional conditioning, an IPAdapter or ControlNet prompt, a "
-    "LoRA trigger line, or your own nodes. That is the escape hatch — use the "
-    "palette without taking the whole prompt.\n"
-    "The render alongside is the paved road (Apply), so you can compare the "
-    "assembled prompt against the parts it was built from."
+    "Inside a style: Facets emits each of its 24 sections as its own STRING.\n"
+    "Six are previewed here; drag any output into any text input — a second "
+    "encoder, an IPAdapter prompt, a LoRA trigger.\n"
+    "Apply and the sampler alongside render the whole assembled prompt."
 )
 
 
@@ -819,14 +818,10 @@ def workflow_04_reference_images() -> dict[str, Any]:
     g = Graph()
     g.note(
         0,
-        "Style prompt and reference images together.\n"
-        "StyleRef Apply drives the sampler with the style's prompt; StyleRef "
-        "Reference Images pulls the style's inspiration images out as a batch, "
-        "previewed alongside. The prompt says how the style reads; the images "
-        "show how it looks — wire the images into IPAdapter or a "
-        "reference-only ControlNet to combine both.\n"
-        "Use a gallery style that has inspiration images.\n"
-        "\n" + _FLUX_SETUP_NOTE,
+        "The style's prompt and its own inspiration images, together.\n"
+        "Apply drives the sampler; Reference Images pulls the images out as a "
+        "batch — preview them, or wire them into IPAdapter or ControlNet.\n"
+        "Needs a gallery style that has inspiration images.\n" + _FLUX_SETUP_NOTE,
         title="FLUX + references",
     )
     load = g.place(
@@ -843,7 +838,6 @@ def workflow_04_reference_images() -> dict[str, Any]:
         "StyleRefApply", 1, apply_widgets(DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 1)
     _flux_tail(g, apply_node, checkpoint, col=2)
 
     return g.to_json(models=[MODEL_FLUX])
@@ -867,7 +861,6 @@ def workflow_05_facets() -> dict[str, Any]:
         "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "flux")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 3)
     _flux_tail(g, apply_node, checkpoint, col=4)
 
     return g.to_json(models=[MODEL_FLUX])
@@ -876,7 +869,7 @@ def workflow_05_facets() -> dict[str, Any]:
 def workflow_zimage_05_facets() -> dict[str, Any]:
     """The Facets story on the Z-Image loader stack."""
     g = Graph()
-    g.note(0, _FACETS_NOTE + "\n\n" + _ZIMAGE_SETUP_NOTE, title="Facets on Z-Image")
+    g.note(0, _FACETS_NOTE + "\n" + _ZIMAGE_SETUP_NOTE, title="Facets on Z-Image")
     load = g.place(
         "StyleRefLoad",
         0,
@@ -891,7 +884,6 @@ def workflow_zimage_05_facets() -> dict[str, Any]:
         "StyleRefApply", 3, apply_widgets(DEMO_SUBJECT, "diffusion")
     )
     g.link(load, 0, apply_node, 0)
-    _preview(g, apply_node, 3)
     _zimage_tail(g, apply_node, unet, clip, vae, col=4)
 
     return g.to_json(models=MODELS_ZIMAGE)

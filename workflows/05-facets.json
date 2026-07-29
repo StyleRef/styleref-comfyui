@@ -1,6 +1,6 @@
 {
-  "last_node_id": 20,
-  "last_link_id": 21,
+  "last_node_id": 18,
+  "last_link_id": 19,
   "nodes": [
     {
       "id": 1,
@@ -11,7 +11,7 @@
       ],
       "size": [
         320,
-        396
+        186
       ],
       "flags": {},
       "order": 0,
@@ -22,7 +22,7 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "Inside the style \u2014 the Facets node.\nApply gives you one prompt string. Facets gives you the style's sections one output at a time \u2014 24 of them, exactly the sections you see on the style board at styleref.io, plus the six custom items.\nSix are previewed here so you can read them. Every other output is on the node too; drag any of them into a text input.\nThey are plain STRINGs, so they go anywhere text goes: a second CLIP encoder for regional conditioning, an IPAdapter or ControlNet prompt, a LoRA trigger line, or your own nodes. That is the escape hatch \u2014 use the palette without taking the whole prompt.\nThe render alongside is the paved road (Apply), so you can compare the assembled prompt against the parts it was built from."
+        "Inside a style: Facets emits each of its 24 sections as its own STRING.\nSix are previewed here; drag any output into any text input \u2014 a second encoder, an IPAdapter prompt, a LoRA trigger.\nApply and the sampler alongside render the whole assembled prompt."
       ],
       "title": "Facets"
     },
@@ -31,11 +31,11 @@
       "type": "StyleRefLoad",
       "pos": [
         40,
-        504
+        302
       ],
       "size": [
         320,
-        248
+        348
       ],
       "flags": {},
       "order": 1,
@@ -75,11 +75,11 @@
       "type": "CheckpointLoaderSimple",
       "pos": [
         40,
-        800
+        706
       ],
       "size": [
         320,
-        160
+        128
       ],
       "flags": {},
       "order": 2,
@@ -90,7 +90,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            15
+            13
           ],
           "slot_index": 0
         },
@@ -98,7 +98,7 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            12
+            10
           ],
           "slot_index": 1
         },
@@ -106,7 +106,7 @@
           "name": "VAE",
           "type": "VAE",
           "links": [
-            20
+            18
           ],
           "slot_index": 2
         }
@@ -134,7 +134,7 @@
       ],
       "size": [
         320,
-        636
+        624
       ],
       "flags": {},
       "order": 3,
@@ -319,7 +319,7 @@
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 4,
@@ -343,11 +343,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        192
+        268
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 5,
@@ -371,11 +371,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        324
+        476
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 6,
@@ -399,11 +399,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        456
+        684
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 7,
@@ -427,11 +427,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        588
+        892
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 8,
@@ -455,11 +455,11 @@
       "type": "PreviewAny",
       "pos": [
         800,
-        720
+        1100
       ],
       "size": [
         320,
-        84
+        152
       ],
       "flags": {},
       "order": 9,
@@ -487,7 +487,7 @@
       ],
       "size": [
         320,
-        424
+        380
       ],
       "flags": {},
       "order": 10,
@@ -504,17 +504,14 @@
           "name": "positive",
           "type": "STRING",
           "links": [
-            9,
-            11
+            9
           ],
           "slot_index": 0
         },
         {
           "name": "negative",
           "type": "STRING",
-          "links": [
-            10
-          ],
+          "links": [],
           "slot_index": 1
         },
         {
@@ -538,62 +535,6 @@
     },
     {
       "id": 12,
-      "type": "PreviewAny",
-      "pos": [
-        1180,
-        532
-      ],
-      "size": [
-        320,
-        84
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 9
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "title": "Compiled positive"
-    },
-    {
-      "id": 13,
-      "type": "PreviewAny",
-      "pos": [
-        1180,
-        664
-      ],
-      "size": [
-        320,
-        84
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 10
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "title": "Compiled negative"
-    },
-    {
-      "id": 14,
       "type": "CLIPTextEncode",
       "pos": [
         1560,
@@ -601,21 +542,23 @@
       ],
       "size": [
         320,
-        198
+        116
       ],
-      "flags": {},
-      "order": 13,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 12
+          "link": 10
         },
         {
           "name": "text",
           "type": "STRING",
-          "link": 11
+          "link": 9
         }
       ],
       "outputs": [
@@ -623,8 +566,8 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            13,
-            14
+            11,
+            12
           ],
           "slot_index": 0
         }
@@ -638,24 +581,24 @@
       "title": "Positive (from StyleRef)"
     },
     {
-      "id": 15,
+      "id": 13,
       "type": "FluxGuidance",
       "pos": [
         1560,
-        306
+        156
       ],
       "size": [
         320,
-        112
+        80
       ],
       "flags": {},
-      "order": 14,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 13
+          "link": 11
         }
       ],
       "outputs": [
@@ -663,7 +606,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            16
+            14
           ],
           "slot_index": 0
         }
@@ -677,24 +620,26 @@
       "title": "Flux guidance"
     },
     {
-      "id": 16,
+      "id": 14,
       "type": "ConditioningZeroOut",
       "pos": [
         1560,
-        466
+        292
       ],
       "size": [
         320,
-        84
+        48
       ],
-      "flags": {},
-      "order": 15,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 14
+          "link": 12
         }
       ],
       "outputs": [
@@ -702,7 +647,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            17
+            15
           ],
           "slot_index": 0
         }
@@ -714,18 +659,18 @@
       "title": "FLUX has no negative"
     },
     {
-      "id": 17,
+      "id": 15,
       "type": "EmptySD3LatentImage",
       "pos": [
         1560,
-        598
+        388
       ],
       "size": [
         320,
-        168
+        144
       ],
       "flags": {},
-      "order": 16,
+      "order": 14,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -733,7 +678,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            18
+            16
           ],
           "slot_index": 0
         }
@@ -748,7 +693,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 16,
       "type": "KSampler",
       "pos": [
         1940,
@@ -756,31 +701,31 @@
       ],
       "size": [
         320,
-        352
+        312
       ],
       "flags": {},
-      "order": 17,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 15
+          "link": 13
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 16
+          "link": 14
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 17
+          "link": 15
         },
         {
           "name": "latent_image",
           "type": "LATENT",
-          "link": 18
+          "link": 16
         }
       ],
       "outputs": [
@@ -788,7 +733,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            19
+            17
           ],
           "slot_index": 0
         }
@@ -807,7 +752,7 @@
       ]
     },
     {
-      "id": 19,
+      "id": 17,
       "type": "VAEDecode",
       "pos": [
         2320,
@@ -815,21 +760,23 @@
       ],
       "size": [
         320,
-        108
+        72
       ],
-      "flags": {},
-      "order": 18,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 19
+          "link": 17
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 20
+          "link": 18
         }
       ],
       "outputs": [
@@ -837,7 +784,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            21
+            19
           ],
           "slot_index": 0
         }
@@ -848,24 +795,24 @@
       "widgets_values": []
     },
     {
-      "id": 20,
+      "id": 18,
       "type": "SaveImage",
       "pos": [
         2320,
-        216
+        156
       ],
       "size": [
         320,
-        112
+        84
       ],
       "flags": {},
-      "order": 19,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 21
+          "link": 19
         }
       ],
       "outputs": [],
@@ -947,102 +894,86 @@
       11,
       0,
       12,
-      0,
+      1,
       "STRING"
     ],
     [
       10,
-      11,
-      1,
-      13,
-      0,
-      "STRING"
-    ],
-    [
-      11,
-      11,
-      0,
-      14,
-      1,
-      "STRING"
-    ],
-    [
-      12,
       3,
       1,
-      14,
+      12,
       0,
       "CLIP"
     ],
     [
+      11,
+      12,
+      0,
       13,
-      14,
-      0,
-      15,
       0,
       "CONDITIONING"
     ],
     [
-      14,
-      14,
+      12,
+      12,
       0,
-      16,
+      14,
       0,
       "CONDITIONING"
     ],
     [
-      15,
+      13,
       3,
       0,
-      18,
+      16,
       0,
       "MODEL"
     ],
     [
-      16,
-      15,
+      14,
+      13,
       0,
-      18,
+      16,
       1,
       "CONDITIONING"
     ],
     [
-      17,
-      16,
+      15,
+      14,
       0,
-      18,
+      16,
       2,
       "CONDITIONING"
     ],
     [
-      18,
+      16,
+      15,
+      0,
+      16,
+      3,
+      "LATENT"
+    ],
+    [
+      17,
+      16,
+      0,
       17,
       0,
-      18,
-      3,
       "LATENT"
     ],
     [
-      19,
       18,
-      0,
-      19,
-      0,
-      "LATENT"
-    ],
-    [
-      20,
       3,
       2,
-      19,
+      17,
       1,
       "VAE"
     ],
     [
-      21,
       19,
+      17,
       0,
-      20,
+      18,
       0,
       "IMAGE"
     ]
