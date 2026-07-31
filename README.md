@@ -32,7 +32,7 @@ git clone https://github.com/StyleRef/styleref-comfyui
 Restart ComfyUI. Nothing to install: the pack declares no Python dependencies
 and imports on the standard library alone. The Reference Images node reaches
 for Pillow and numpy when it runs, and every ComfyUI install already ships
-those. Look for `[StyleRef] v1.0.5 — 5 nodes registered` in the server console
+those. Look for `[StyleRef] v1.0.6 — 5 nodes registered` in the server console
 at startup.
 
 **It does depend on styleref.io.** These nodes are a client, not a local
