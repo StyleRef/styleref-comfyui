@@ -99,6 +99,13 @@ async def styleref_saved(request: web.Request) -> web.Response:
             offset=_int_param(request, "offset", 0),
         )
     except StyleRefError as err:
+        # A 401 here means stored credentials that no longer work (expired, or
+        # revoked on styleref.io). That is the signed-out state as far as the UI
+        # is concerned, so report it as one and let the dialog offer Sign in —
+        # echoing the server's raw 401 told people to set an Authorization header,
+        # which is not something anyone can do from inside ComfyUI.
+        if err.needs_login:
+            return web.json_response({"styles": [], "signedIn": False})
         return web.json_response({"styles": [], "signedIn": True, "error": err.message})
 
     return web.json_response(
@@ -124,6 +131,13 @@ async def styleref_my_styles(request: web.Request) -> web.Response:
             limit=_int_param(request, "limit", 8), cursor=cursor, query=query
         )
     except StyleRefError as err:
+        # A 401 here means stored credentials that no longer work (expired, or
+        # revoked on styleref.io). That is the signed-out state as far as the UI
+        # is concerned, so report it as one and let the dialog offer Sign in —
+        # echoing the server's raw 401 told people to set an Authorization header,
+        # which is not something anyone can do from inside ComfyUI.
+        if err.needs_login:
+            return web.json_response({"styles": [], "signedIn": False})
         return web.json_response({"styles": [], "signedIn": True, "error": err.message})
 
     return web.json_response(

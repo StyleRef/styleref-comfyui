@@ -211,6 +211,58 @@ function openPicker(initialQuery) {
         const message = (text) =>
             el("div", "background:#26262a;border-radius:8px;padding:10px 12px;margin-bottom:6px;opacity:.75;font-size:13px;", text);
 
+        /**
+         * Signed-out state, as one actionable row rather than a wall of text.
+         * The old copy pasted the server's raw 401 — which told people to send an
+         * `Authorization: Bearer` header and linked the MCP install page, neither
+         * of which anyone can do from inside ComfyUI. Signing in is one click here.
+         */
+        const signInPrompt = (out, what) => {
+            const box = el(
+                "div",
+                "background:#26262a;border-radius:8px;padding:12px;margin-bottom:6px;font-size:13px;",
+            );
+            box.append(
+                el("div", "opacity:.8;margin-bottom:8px;", `Sign in to StyleRef to see ${what}.`),
+            );
+
+            const actions = el("div", "display:flex;gap:8px;align-items:center;");
+            const signIn = el(
+                "button",
+                "background:#4f46e5;border:0;color:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;",
+                "Sign in",
+            );
+            signIn.onclick = async () => {
+                signIn.disabled = true;
+                signIn.textContent = "Waiting for browser…";
+                const res = await postJson("/styleref/auth/signin");
+                if (res && res.ok === false && res.message) {
+                    // Headless boxes get the full instructions — they can't just click.
+                    showMessage(res.message);
+                    signIn.disabled = false;
+                    signIn.textContent = "Sign in";
+                    return;
+                }
+                // Both sections were rendered against the signed-out state.
+                renderMine();
+                renderGallery();
+            };
+            actions.append(signIn);
+
+            const help = el(
+                "a",
+                "color:#9b9bff;text-decoration:none;font-size:12px;opacity:.9;",
+                "Setup guide",
+            );
+            help.href = "https://docs.styleref.io/connectors/comfyui/login-and-credits";
+            help.target = "_blank";
+            help.rel = "noopener";
+            actions.append(help);
+
+            box.append(actions);
+            out.append(box);
+        };
+
         function row(style) {
             const button = el(
                 "button",
@@ -350,7 +402,7 @@ function openPicker(initialQuery) {
 
             section(mineBox, "My styles", (out) => {
                 if (mine.signedIn === false) {
-                    out.append(message("Sign in (StyleRef Login node) to see your styles here."));
+                    signInPrompt(out, "your style library");
                     return;
                 }
                 if (mine.error) {
@@ -412,9 +464,7 @@ function openPicker(initialQuery) {
 
             section(galleryBox, title, (out) => {
                 if (gallery.signedIn === false) {
-                    out.append(
-                        message("Sign in (StyleRef Login node) to see the styles you saved."),
-                    );
+                    signInPrompt(out, "the styles you saved");
                     return;
                 }
                 if (gallery.error) {
